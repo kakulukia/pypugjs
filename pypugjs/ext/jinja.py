@@ -1,5 +1,4 @@
 from jinja2.ext import Extension
-import re
 import os
 import pypugjs.runtime
 
@@ -77,11 +76,17 @@ class Compiler(_Compiler):
 
     def visitInclude(self, node):
         path = self.format_path(node.path)
-        if os.path.exists(path):
-            src = open(path, 'r').read()
-        else:
-            raise Exception("Include path doesn't exists")
-
+        fullpath = ''
+        searchpath = self.options.get('searchpath', [''])
+        for basedir in searchpath:
+            if os.path.exists(os.path.join(basedir, path)):
+                fullpath = os.path.join(basedir, path)
+                break
+        if not fullpath:
+            raise FileNotFoundError(
+                'No such file {} in Jinja loader searchpath'.format(path))
+        with open(fullpath) as f:
+            src = f.read()
         parser = pypugjs.parser.Parser(src)
         block = parser.parse()
         self.visit(block)
@@ -131,11 +136,7 @@ class PyPugJSExtension(Extension):
                 loader = loader.app.jinja_loader
             except AttributeError:
                 pass
-            basedir = loader.searchpath[0]
-            basedir = os.path.join(basedir, '')
-            pattern = r'((^|\n)\s*include )(?!{})'.format(basedir)
-            replace = '\\1{}'.format(basedir)
-            source = re.sub(pattern, replace, source)
+            self.options['searchpath'] = loader.searchpath
 
         if (not name or
            (name and not os.path.splitext(name)[1] in self.file_extensions)):
