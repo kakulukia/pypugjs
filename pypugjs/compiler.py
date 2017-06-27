@@ -15,41 +15,13 @@ class Compiler(object):
       , 'basic': '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN" "http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">'
       , 'mobile': '<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.2//EN" "http://www.openmobilealliance.org/tech/DTD/xhtml-mobile12.dtd">'
     }
-    inlineTags = [
-        'a'
-      , 'abbr'
-      , 'acronym'
-      , 'b'
-      , 'br'
-      , 'code'
-      , 'em'
-      , 'font'
-      , 'i'
-      , 'img'
-      , 'ins'
-      , 'kbd'
-      , 'map'
-      , 'samp'
-      , 'small'
-      , 'span'
-      , 'strong'
-      , 'sub'
-      , 'sup'
-      , 'textarea'
-    ]
-    selfClosing = [
-        'meta'
-      , 'img'
-      , 'link'
-      , 'input'
-      , 'area'
-      , 'base'
-      , 'col'
-      , 'br'
-      , 'hr'
-    ]
-    autocloseCode = 'if,for,block,filter,autoescape,with,trans,spaceless,comment,cache,macro,localize,compress,raw'.split(',')
-
+    inlineTags = '''
+        a abbr acronym b br code em font i img ins kbd map samp small span
+        strong sub sup textarea'''.strip().split()
+    selfClosing = 'meta img link input area base col br hr'.split()
+    autocloseCode = '''
+        if for block filter autoescape with trans spaceless comment cache
+        macro localize compress raw'''.strip().split()
     filters = {}
 
     def __init__(self, node, **options):
@@ -74,7 +46,8 @@ class Compiler(object):
         self.mixing = 0
         self.variable_start_string = options.get("variable_start_string", "{{")
         self.variable_end_string = options.get("variable_end_string", "}}")
-        if 'doctype' in self.options: self.setDoctype(options['doctype'])
+        if 'doctype' in self.options:
+            self.setDoctype(options['doctype'])
         self.instring = False
 
     def var_processor(self, var):
@@ -390,6 +363,3 @@ class Compiler(object):
     @classmethod
     def register_autoclosecode(cls, name):
         cls.autocloseCode.append(name)
-
-
-#1-
