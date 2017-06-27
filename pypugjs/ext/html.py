@@ -39,6 +39,7 @@ class Compiler(pypugjs.compiler.Compiler):
     local_context = {}
     mixins = {}
     useRuntime = True
+
     def _do_eval(self, value):
         if isinstance(value, six.string_types):
             value = value.encode('utf-8')
@@ -59,6 +60,7 @@ class Compiler(pypugjs.compiler.Compiler):
 
     def _make_mixin(self, mixin):
         arg_names = [arg.strip() for arg in mixin.args.split(",")]
+
         def _mixin(self, args):
             if args:
                 arg_values = self._do_eval(args)
@@ -68,13 +70,13 @@ class Compiler(pypugjs.compiler.Compiler):
                 arg_values = [arg_values]
             local_context = dict(zip(arg_names, arg_values))
             with local_context_manager(self, local_context):
-                self.visitBlock(mixin.block)
+                self.visit_block(mixin.block)
         return _mixin
 
     def interpolate(self, text, escape=True):
         return self._interpolate(text, lambda x: str(self._do_eval(x)))
 
-    def visitInclude(self, node):
+    def visit_include(self, node):
         if os.path.exists(node.path):
             src = open(node.path, 'r').read()
         elif os.path.exists("%s.pug" % node.path):
@@ -86,19 +88,19 @@ class Compiler(pypugjs.compiler.Compiler):
         block = parser.parse()
         self.visit(block)
 
-    def visitExtends(self, node):
+    def visit_extends(self, node):
         raise pypugjs.exceptions.CurrentlyNotSupported()
 
-    def visitMixin(self, mixin):
+    def visit_mixin(self, mixin):
         if mixin.block:
             self.mixins[mixin.name] = self._make_mixin(mixin)
         else:
             self.mixins[mixin.name](self, mixin.args)
 
-    def visitAssignment(self, assignment):
+    def visit_assignment(self, assignment):
         self.global_context[assignment.name] = self._do_eval(assignment.val)
 
-    def visitConditional(self, conditional):
+    def visit_conditional(self, conditional):
         if not conditional.sentence:
             value = False
         else:
@@ -107,9 +109,9 @@ class Compiler(pypugjs.compiler.Compiler):
             self.visit(conditional.block)
         elif conditional.next:
             for item in conditional.next:
-                self.visitConditional(item)
+                self.visit_conditional(item)
 
-    def visitCode(self, code):
+    def visit_code(self, code):
         if code.buffer:
             val = code.val.lstrip()
             val = self.var_processor(val)
@@ -122,7 +124,7 @@ class Compiler(pypugjs.compiler.Compiler):
         if not code.buffer and not code.block:
             six.exec_(code.val.lstrip(), self.global_context, self.local_context)
 
-    def visitEach(self, each):
+    def visit_each(self, each):
         obj = iteration(self._do_eval(each.obj), len(each.keys))
         for item in obj:
             local_context = {}
@@ -137,7 +139,7 @@ class Compiler(pypugjs.compiler.Compiler):
     def attributes(self, attrs):
         return " ".join(['''%s="%s"''' % (k,v) for (k,v) in attrs.items()])
 
-    def visitDynamicAttributes(self, attrs):
+    def visit_dynamic_attributes(self, attrs):
         classes = []
         params = []
         for attr in attrs:
@@ -159,7 +161,9 @@ class Compiler(pypugjs.compiler.Compiler):
         if params:
             self.buf.append(" "+" ".join([process_param(k, v, self.terse) for (k,v) in params]))
 
+
 HTMLCompiler = Compiler
+
 
 def process_pugjs(src):
     parser = pypugjs.parser.Parser(src)

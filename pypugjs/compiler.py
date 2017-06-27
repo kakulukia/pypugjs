@@ -2,19 +2,37 @@ import re
 import os
 import six
 
+
+DOCTYPES = {
+    '5': '<!DOCTYPE html>',
+    'xml': '<?xml version="1.0" encoding="utf-8" ?>',
+    'default': (
+        '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" '
+        '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'),
+    'transitional': ('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 '
+                     'Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/'
+                     'xhtml1-transitional.dtd">'),
+    'strict': (
+        '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" '
+        '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">'),
+    'frameset': (
+        '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" '
+        '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">'),
+    '1.1': (
+        '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" '
+        '"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">'),
+    'basic': (
+        '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN" '
+        '"http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">'),
+    'mobile': (
+        '<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.2//EN" '
+        '"http://www.openmobilealliance.org/tech/DTD/xhtml-mobile12.dtd">')
+}
+
+
 class Compiler(object):
     RE_INTERPOLATE = re.compile(r'(\\)?([#!]){(.*?)}')
-    doctypes = {
-        '5': '<!DOCTYPE html>'
-      , 'xml': '<?xml version="1.0" encoding="utf-8" ?>'
-      , 'default': '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
-      , 'transitional': '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
-      , 'strict': '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">'
-      , 'frameset': '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">'
-      , '1.1': '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">'
-      , 'basic': '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN" "http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">'
-      , 'mobile': '<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.2//EN" "http://www.openmobilealliance.org/tech/DTD/xhtml-mobile12.dtd">'
-    }
+    doctypes = DOCTYPES
     inlineTags = '''
         a abbr acronym b br code em font i img ins kbd map samp small span
         strong sub sup textarea'''.strip().split()
@@ -44,7 +62,8 @@ class Compiler(object):
         self.terse = False
         self.xml = False
         self.mixing = 0
-        self.variable_start_string = options.get("variable_start_string", "{{")
+        self.variable_start_string = options.get(
+            "variable_start_string", "{{")
         self.variable_end_string = options.get("variable_end_string", "}}")
         if 'doctype' in self.options:
             self.setDoctype(options['doctype'])
@@ -52,7 +71,7 @@ class Compiler(object):
 
     def var_processor(self, var):
         if isinstance(var,six.string_types) and var.startswith('_ '):
-            var = '_("%s")'%var[2:]
+            var = '_("%s")' % var[2:]
         return var
 
     def compile_top(self):
@@ -91,35 +110,36 @@ class Compiler(object):
         #     self.buf.pop()
         #     self.buf.pop()
 
-        self.visitNode(node, *args, **kwargs)
+        self.visit_node(node, *args, **kwargs)
         # if debug: self.buf.append('__pugjs.shift();')
 
-    def visitNode (self, node, *args, **kwargs):
+    def visit_node(self, node, *args, **kwargs):
         name = node.__class__.__name__
         if self.instring and name != 'Tag':
             self.buffer('\n')
             self.instring = False
-        return getattr(self, 'visit%s' % name)(node, *args, **kwargs)
+        snake_name = camel_to_snake(name)
+        return getattr(self, f'visit_{snake_name}')(node, *args, **kwargs)
 
-    def visitLiteral(self, node):
+    def visit_literal(self, node):
         self.buffer(node.str)
 
-    def visitBlock(self, block):
+    def visit_block(self, block):
         for node in block.nodes:
             self.visit(node)
 
-    def visitCodeBlock(self, block):
+    def visit_code_block(self, block):
         self.buffer('{%% block %s %%}' % block.name)
         if block.mode=='prepend':
             self.buffer('%ssuper()%s' % (self.variable_start_string,
                                          self.variable_end_string))
-        self.visitBlock(block)
+        self.visit_block(block)
         if block.mode == 'append':
             self.buffer('%ssuper()%s' % (self.variable_start_string,
                                          self.variable_end_string))
         self.buffer('{% endblock %}')
 
-    def visitDoctype(self,doctype=None):
+    def visit_doctype(self,doctype=None):
         if doctype and (doctype.val or not self.doctype):
             self.setDoctype(doctype.val or 'default')
 
@@ -127,21 +147,21 @@ class Compiler(object):
             self.buffer(self.doctype)
         self.hasCompiledDoctype = True
 
-    def visitMixin(self,mixin):
+    def visit_mixin(self, mixin):
         if mixin.block:
             self.buffer('{%% macro %s(%s) %%}' % (mixin.name, mixin.args))
-            self.visitBlock(mixin.block)
+            self.visit_block(mixin.block)
             self.buffer('{% endmacro %}')
         else:
           self.buffer('%s%s(%s)%s' % (self.variable_start_string, mixin.name,
                                       mixin.args, self.variable_end_string))
 
-    def visitTag(self,tag):
+    def visit_tag(self,tag):
         self.indents += 1
         name = tag.name
         if not self.hasCompiledTag:
             if not self.hasCompiledDoctype and 'html' == name:
-                self.visitDoctype()
+                self.visit_doctype()
             self.hasCompiledTag = True
 
         if self.pp and name not in self.inlineTags and not tag.inline:
@@ -161,11 +181,11 @@ class Compiler(object):
             self.buffer('<' + self.interpolate(name))
         else:
             self.buffer('<%s' % name)
-        self.visitAttributes(tag.attrs)
+        self.visit_attributes(tag.attrs)
         self.buffer('/>' if not self.terse and closed else '>')
 
         if not closed:
-            if tag.code: self.visitCode(tag.code)
+            if tag.code: self.visit_code(tag.code)
             if tag.text: self.buffer(self.interpolate(tag.text.nodes[0].lstrip()))
             self.escape = 'pre' == tag.name
             # empirically check if we only contain text
@@ -182,7 +202,7 @@ class Compiler(object):
                 self.buffer('</%s>' % name)
         self.indents -= 1
 
-    def visitFilter(self,filter):
+    def visit_filter(self,filter):
         if filter.name not in self.filters:
           if filter.isASTFilter:
             raise Exception('unknown ast filter "%s"' % filter.name)
@@ -219,27 +239,27 @@ class Compiler(object):
                 filter_string + self.variable_end_string
         return self.RE_INTERPOLATE.sub(repl, text)
 
-    def visitText(self,text):
+    def visit_text(self,text):
         text = ''.join(text.nodes)
         text = self.interpolate(text)
         self.buffer(text)
         if self.pp:
             self.buffer('\n')
 
-    def visitString(self,text):
+    def visit_string(self,text):
         instring = not text.inline
         text = ''.join(text.nodes)
         text = self.interpolate(text)
         self.buffer(text)
         self.instring = instring
 
-    def visitComment(self,comment):
+    def visit_comment(self,comment):
         if not comment.buffer: return
         if self.pp:
             self.buffer('\n' + '  ' * (self.indents))
         self.buffer('<!--%s-->' % comment.val)
 
-    def visitAssignment(self,assignment):
+    def visit_assignment(self, assignment):
         self.buffer('{%% set %s = %s %%}' % (assignment.name, assignment.val))
 
 
@@ -249,15 +269,15 @@ class Compiler(object):
             path += self.extension
         return path
 
-    def visitExtends(self,node):
+    def visit_extends(self,node):
         path = self.format_path(node.path)
         self.buffer('{%% extends "%s" %%}' % (path))
 
-    def visitInclude(self,node):
+    def visit_include(self,node):
         path = self.format_path(node.path)
         self.buffer('{%% include "%s" %%}' % (path))
 
-    def visitBlockComment(self, comment):
+    def visit_block_comment(self, comment):
         if not comment.buffer:
             return
         isConditional = comment.val.strip().startswith('if')
@@ -265,7 +285,7 @@ class Compiler(object):
         self.visit(comment.block)
         self.buffer('<![endif]-->' if isConditional else '-->')
 
-    def visitConditional(self, conditional):
+    def visit_conditional(self, conditional):
         TYPE_CODE = {
             'if': lambda x: 'if %s'%x,
             'unless': lambda x: 'if not %s'%x,
@@ -276,17 +296,17 @@ class Compiler(object):
         if conditional.block:
             self.visit(conditional.block)
             for next in conditional.next:
-              self.visitConditional(next)
+              self.visit_conditional(next)
         if conditional.type in ['if','unless']:
             self.buf.append('{% endif %}')
 
 
-    def visitVar(self, var, escape=False):
+    def visit_var(self, var, escape=False):
         var = self.var_processor(var)
         return ('%s%s%s%s' % (self.variable_start_string, var,
                               '|escape' if escape else '', self.variable_end_string))
 
-    def visitCode(self,code):
+    def visit_code(self,code):
         if code.buffer:
             val = code.val.lstrip()
 
@@ -304,7 +324,7 @@ class Compiler(object):
               if codeTag in self.autocloseCode:
                   self.buf.append('{%% end%s %%}' % codeTag)
 
-    def visitEach(self,each):
+    def visit_each(self,each):
         self.buf.append('{%% for %s in %s|__pypugjs_iter:%d %%}' % (','.join(each.keys), each.obj, len(each.keys)))
         self.visit(each.block)
         self.buf.append('{% endfor %}')
@@ -312,7 +332,7 @@ class Compiler(object):
     def attributes(self,attrs):
         return "%s__pypugjs_attrs(%s)%s" % (self.variable_start_string, attrs, self.variable_end_string)
 
-    def visitDynamicAttributes(self, attrs):
+    def visit_dynamic_attributes(self, attrs):
         buf, classes, params = [], [], {}
         terse='terse=True' if self.terse else ''
         for attr in attrs:
@@ -333,19 +353,19 @@ class Compiler(object):
         if buf or terse:
             self.buf.append(self.attributes(param_string))
 
-    def visitAttributes(self, attrs):
+    def visit_attributes(self, attrs):
         temp_attrs = []
         for attr in attrs:
             if (not self.useRuntime and not attr['name']=='class') or attr['static']: #
                 if temp_attrs:
-                    self.visitDynamicAttributes(temp_attrs)
+                    self.visit_dynamic_attributes(temp_attrs)
                     temp_attrs = []
                 n, v = attr['name'], attr['val']
                 if isinstance(v, six.string_types):
                     if self.useRuntime or attr['static']:
                         self.buf.append(' %s=%s' % (n, v))
                     else:
-                        self.buf.append(' %s="%s"' % (n, self.visitVar(v)))
+                        self.buf.append(' %s="%s"' % (n, self.visit_var(v)))
                 elif v is True:
                     if self.terse:
                         self.buf.append(' %s' % (n,))
@@ -354,7 +374,7 @@ class Compiler(object):
             else:
                 temp_attrs.append(attr)
 
-        if temp_attrs: self.visitDynamicAttributes(temp_attrs)
+        if temp_attrs: self.visit_dynamic_attributes(temp_attrs)
 
     @classmethod
     def register_filter(cls, name, f):
@@ -363,3 +383,12 @@ class Compiler(object):
     @classmethod
     def register_autoclosecode(cls, name):
         cls.autocloseCode.append(name)
+
+
+first_cap_re = re.compile('(.)([A-Z][a-z]+)')
+all_cap_re = re.compile('([a-z0-9])([A-Z])')
+
+
+def camel_to_snake(name):
+    s1 = first_cap_re.sub(r'\1_\2', name)
+    return all_cap_re.sub(r'\1_\2', s1).lower()

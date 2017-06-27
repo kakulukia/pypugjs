@@ -36,7 +36,7 @@ class Compiler(_Compiler):
             self.buffer(f'{{% block {block.name} %}}')
             if block.mode == 'append':
                 self.buffer(self._wrap_var('super()'))
-            self.visitBlock(block)
+            self.visit_block(block)
             if block.mode == 'prepend':
                 self.buffer(self._wrap_var('super()'))
             self.buffer('{% endblock %}')
@@ -45,14 +45,14 @@ class Compiler(_Compiler):
         self.mixing += 1
         if not mixin.call:
             self.buffer(f'{{% macro {mixin.name}({mixin.args}) %}}')
-            self.visitBlock(mixin.block)
+            self.visit_block(mixin.block)
             self.buffer('{% endmacro %}')
         elif mixin.block:
             if self.mixing > 1:
                 self.buffer(
                     f'{{% set __pypugjs_caller_{self.mixing}=caller %}}')
             self.buffer(f'{{% call {mixin.name}({mixin.args}) %}}')
-            self.visitBlock(mixin.block)
+            self.visit_block(mixin.block)
             self.buffer('{% endcall %}')
         else:
             self.buffer(self._wrap_var(f'{mixin.name}({mixin.args})'))
@@ -102,13 +102,6 @@ class Compiler(_Compiler):
 
     def attributes(self, attrs_):
         return self._wrap_var(f'{ATTRS_FUNC}({attrs_})')
-
-    visitCodeBlock = visit_code_block
-    visitMixin = visit_mixin
-    visitAssignment = visit_assignment
-    visitCode = visit_code
-    visitEach = visit_each
-    visitInclude = visit_include
 
 
 class PyPugJSExtension(Extension):
