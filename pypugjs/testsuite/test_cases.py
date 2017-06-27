@@ -118,7 +118,7 @@ try:
 
     processors['Django'] = django_process
 except ImportError:
-    raise
+    pass
 
 try:
     import pypugjs.ext.mako
