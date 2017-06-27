@@ -22,7 +22,7 @@ class Compiler(_Compiler):
     def _wrap_var(self, var):
         return f'{self.variable_start_string}{var}{self.variable_end_string}'
 
-    def visitCodeBlock(self, block):
+    def visit_code_block(self, block):
         if self.mixing > 0:
             if self.mixing > 1:
                 caller_name = f'__pypugjs_caller_{self.mixing}'
@@ -41,7 +41,7 @@ class Compiler(_Compiler):
                 self.buffer(self._wrap_var('super()'))
             self.buffer('{% endblock %}')
 
-    def visitMixin(self, mixin):
+    def visit_mixin(self, mixin):
         self.mixing += 1
         if not mixin.call:
             self.buffer(f'{{% macro {mixin.name}({mixin.args}) %}}')
@@ -58,10 +58,10 @@ class Compiler(_Compiler):
             self.buffer(self._wrap_var(f'{mixin.name}({mixin.args})'))
         self.mixing -= 1
 
-    def visitAssignment(self, assignment):
+    def visit_assignment(self, assignment):
         self.buffer(f'{{% set {assignment.name} = {assignment.val} %}}')
 
-    def visitCode(self, code):
+    def visit_code(self, code):
         if code.buffer:
             val = code.val.lstrip()
             val = self.var_processor(val)
@@ -77,13 +77,13 @@ class Compiler(_Compiler):
                 if code_tag in self.autocloseCode:
                     self.buf.append(f'{{% end{code_tag} %}}')
 
-    def visitEach(self, each):
+    def visit_each(self, each):
         self.buf.append(f'{{% for {",".join(each.keys)} in '
                         f'{ITER_FUNC}({each.obj}, {len(each.keys)}) %}}')
         self.visit(each.block)
         self.buf.append('{% endfor %}')
 
-    def visitInclude(self, node):
+    def visit_include(self, node):
         path = self.format_path(node.path)
         fullpath = ''
         searchpath = self.options.get('searchpath', [''])
@@ -102,6 +102,13 @@ class Compiler(_Compiler):
 
     def attributes(self, attrs_):
         return self._wrap_var(f'{ATTRS_FUNC}({attrs_})')
+
+    visitCodeBlock = visit_code_block
+    visitMixin = visit_mixin
+    visitAssignment = visit_assignment
+    visitCode = visit_code
+    visitEach = visit_each
+    visitInclude = visit_include
 
 
 class PyPugJSExtension(Extension):
