@@ -70,7 +70,7 @@ class Compiler(object):
         self.instring = False
 
     def var_processor(self, var):
-        if isinstance(var,six.string_types) and var.startswith('_ '):
+        if isinstance(var, six.string_types) and var.startswith('_ '):
             var = '_("%s")' % var[2:]
         return var
 
@@ -89,7 +89,7 @@ class Compiler(object):
     def setDoctype(self, name):
         self.doctype = self.doctypes.get(name or 'default',
                                          '<!DOCTYPE %s>' % name)
-        self.terse = name in ['5','html']
+        self.terse = name in ['5', 'html']
         self.xml = self.doctype.startswith('<?xml')
 
     def buffer(self, str):
@@ -139,7 +139,7 @@ class Compiler(object):
                                          self.variable_end_string))
         self.buffer('{% endblock %}')
 
-    def visit_doctype(self,doctype=None):
+    def visit_doctype(self, doctype=None):
         if doctype and (doctype.val or not self.doctype):
             self.setDoctype(doctype.val or 'default')
 
@@ -156,7 +156,7 @@ class Compiler(object):
           self.buffer('%s%s(%s)%s' % (self.variable_start_string, mixin.name,
                                       mixin.args, self.variable_end_string))
 
-    def visit_tag(self,tag):
+    def visit_tag(self, tag):
         self.indents += 1
         name = tag.name
         if not self.hasCompiledTag:
@@ -202,7 +202,7 @@ class Compiler(object):
                 self.buffer('</%s>' % name)
         self.indents -= 1
 
-    def visit_filter(self,filter):
+    def visit_filter(self, filter):
         if filter.name not in self.filters:
           if filter.isASTFilter:
             raise Exception('unknown ast filter "%s"' % filter.name)
@@ -239,21 +239,21 @@ class Compiler(object):
                 filter_string + self.variable_end_string
         return self.RE_INTERPOLATE.sub(repl, text)
 
-    def visit_text(self,text):
+    def visit_text(self, text):
         text = ''.join(text.nodes)
         text = self.interpolate(text)
         self.buffer(text)
         if self.pp:
             self.buffer('\n')
 
-    def visit_string(self,text):
+    def visit_string(self, text):
         instring = not text.inline
         text = ''.join(text.nodes)
         text = self.interpolate(text)
         self.buffer(text)
         self.instring = instring
 
-    def visit_comment(self,comment):
+    def visit_comment(self, comment):
         if not comment.buffer: return
         if self.pp:
             self.buffer('\n' + '  ' * (self.indents))
@@ -263,17 +263,17 @@ class Compiler(object):
         self.buffer('{%% set %s = %s %%}' % (assignment.name, assignment.val))
 
 
-    def format_path(self,path):
+    def format_path(self, path):
         has_extension = '.' in os.path.basename(path)
         if not has_extension:
             path += self.extension
         return path
 
-    def visit_extends(self,node):
+    def visit_extends(self, node):
         path = self.format_path(node.path)
         self.buffer('{%% extends "%s" %%}' % (path))
 
-    def visit_include(self,node):
+    def visit_include(self, node):
         path = self.format_path(node.path)
         self.buffer('{%% include "%s" %%}' % (path))
 
@@ -297,7 +297,7 @@ class Compiler(object):
             self.visit(conditional.block)
             for next in conditional.next:
               self.visit_conditional(next)
-        if conditional.type in ['if','unless']:
+        if conditional.type in ['if', 'unless']:
             self.buf.append('{% endif %}')
 
 
@@ -306,7 +306,7 @@ class Compiler(object):
         return ('%s%s%s%s' % (self.variable_start_string, var,
                               '|escape' if escape else '', self.variable_end_string))
 
-    def visit_code(self,code):
+    def visit_code(self, code):
         if code.buffer:
             val = code.val.lstrip()
 
@@ -324,12 +324,12 @@ class Compiler(object):
               if codeTag in self.autocloseCode:
                   self.buf.append('{%% end%s %%}' % codeTag)
 
-    def visit_each(self,each):
+    def visit_each(self, each):
         self.buf.append('{%% for %s in %s|__pypugjs_iter:%d %%}' % (','.join(each.keys), each.obj, len(each.keys)))
         self.visit(each.block)
         self.buf.append('{% endfor %}')
 
-    def attributes(self,attrs):
+    def attributes(self, attrs):
         return "%s__pypugjs_attrs(%s)%s" % (self.variable_start_string, attrs, self.variable_end_string)
 
     def visit_dynamic_attributes(self, attrs):
