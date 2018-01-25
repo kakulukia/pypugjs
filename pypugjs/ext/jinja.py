@@ -81,7 +81,7 @@ class Compiler(_Compiler):
         self.buf.append('{% endfor %}')
 
     def visitInclude(self, node):
-        path = os.path.join(self.options["basedir"], self.format_path(node.path))
+        path = os.path.join(self.options.get("basedir", '.'), self.format_path(node.path))
         if os.path.exists(path):
             src = open(path, 'r').read()
         else:
