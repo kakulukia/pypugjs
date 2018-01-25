@@ -81,7 +81,7 @@ class Compiler(_Compiler):
         self.buf.append('{% endfor %}')
 
     def visitInclude(self, node):
-        path = self.format_path(node.path)
+        path = os.path.join(self.options["basedir"], self.format_path(node.path))
         if os.path.exists(path):
             src = open(path, 'r').read()
         else:
@@ -114,18 +114,13 @@ class PyPugJSExtension(Extension):
         self.options["variable_end_string"] = environment.variable_end_string
 
     def preprocess(self, source, name, filename=None):
-        if 'include' in source:
-            loader = self.environment.loader
-            try:
-                # we're in a Flask app
-                loader = loader.app.jinja_loader
-            except AttributeError:
-                pass
-            basedir = loader.searchpath[0]
-            basedir = os.path.join(basedir, '')
-            pattern = r'((^|\n)\s*include )(?!{})'.format(basedir)
-            replace = '\\1{}'.format(basedir)
-            source = re.sub(pattern, replace, source)
+        loader = self.environment.loader
+        try:
+            # we're in a Flask app
+            loader = loader.app.jinja_loader
+        except AttributeError:
+            pass
+        self.options["basedir"] = loader.searchpath[0]
 
         if (not name or
                 (name and not os.path.splitext(name)[1] in self.file_extensions)):
