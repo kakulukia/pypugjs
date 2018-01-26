@@ -157,11 +157,7 @@ def setup_func():
 
 
 def html_process(src, filename):
-    # hack for includes to work because of working directory
-    if 'include' in src:
-        import re
-        src = re.sub(r'((^|\n)\s*include )(?!cases/)', '\\1cases/', src)
-    return pypugjs.ext.html.process_pugjs(src)
+    return pypugjs.ext.html.process_pugjs(src, basedir='cases')
 
 
 processors['Html'] = html_process

@@ -80,10 +80,11 @@ class Compiler(pypugjs.compiler.Compiler):
         return self._interpolate(text, lambda x: str(self._do_eval(x)))
 
     def visitInclude(self, node):
-        if os.path.exists(node.path):
-            src = open(node.path, 'r').read()
-        elif os.path.exists("%s.pug" % node.path):
-            src = open("%s.pug" % node.path, 'r').read()
+        path = os.path.join(self.options.get("basedir", os.getcwd()), node.path)
+        if os.path.exists(path):
+            src = open(path, 'r').read()
+        elif os.path.exists("%s.pug" % path):
+            src = open("%s.pug" % path, 'r').read()
         else:
             raise Exception("Include path doesn't exists")
 
@@ -168,8 +169,8 @@ class Compiler(pypugjs.compiler.Compiler):
 HTMLCompiler = Compiler
 
 
-def process_pugjs(src):
+def process_pugjs(src, **options):
     parser = pypugjs.parser.Parser(src)
     block = parser.parse()
-    compiler = Compiler(block, pretty=True)
+    compiler = Compiler(block, pretty=True, **options)
     return compiler.compile()
