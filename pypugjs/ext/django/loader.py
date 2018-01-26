@@ -37,8 +37,10 @@ class Loader(BaseLoader):
         match = re.search(r'^include (.*)$', contents, re.MULTILINE)
         if match:
             mixin_name = match.groups()[0]
-            template = self.get_template(mixin_name)
-            contents = re.sub(r'^include (.*)$', template.source,
+            origin = [o for o in self.get_template_sources(mixin_name)][0]
+            template = origin.loader.get_contents(origin)
+            template = self.include_pug_sources(template)
+            contents = re.sub(r'^include (.*)$', template,
                               contents, flags=re.MULTILINE)
         return contents
 
