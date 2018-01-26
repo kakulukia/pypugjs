@@ -1,5 +1,4 @@
 import os
-import re
 
 from jinja2 import Markup
 from jinja2.ext import Extension
