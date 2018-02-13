@@ -73,9 +73,7 @@ class Compiler(pypugjs.compiler.Compiler):
                 arg_values = [arg_values]
             local_context = dict(zip(arg_names, arg_values))
             with local_context_manager(self, local_context):
-                self.indents, old_indent = 0, self.indents
                 self.visitBlock(mixin.block)
-                self.indents = old_indent
 
         return _mixin
 
