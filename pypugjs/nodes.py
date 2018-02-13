@@ -90,9 +90,9 @@ class Extends(Node):
 
 
 class Include(Node):
-    def __init__(self, path, extra=None):
+    def __init__(self, path, filter):
         self.path = path
-        self.extra = extra
+        self.filter = filter
 
 
 class Conditional(Node):

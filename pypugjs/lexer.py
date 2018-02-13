@@ -71,7 +71,7 @@ class Lexer(object):
     RE_APPEND = re.compile(r'^append +([^\n]+)')
     RE_BLOCK = re.compile(r'''^block(( +(?:(prepend|append) +)?([^\n]*))|\n)''')
     RE_YIELD = re.compile(r'^yield *')
-    RE_INCLUDE = re.compile(r'^include +([^\n]+)')
+    RE_INCLUDE = re.compile(r'^include(?::([-\w]+))? +([^\n]+)')
     RE_ASSIGNMENT = re.compile(r'^(-\s+var\s+)?(\w+) += *([^;\n]+)( *;? *)')
     RE_MIXIN = re.compile(r'^mixin +([-\w]+)(?: *\((.*)\))?')
     RE_CALL = re.compile(r'^\+\s*([-.\w]+)(?: *\((.*)\))?')
@@ -392,7 +392,13 @@ class Lexer(object):
         return self.scan(self.RE_YIELD, 'yield')
 
     def include(self):
-        return self.scan(self.RE_INCLUDE, 'include')
+        captures = regexec(self.RE_INCLUDE, self.input)
+        if captures:
+            self.consume(len(captures[0]))
+            tok = self.tok('include', captures[2])
+            tok.filter = captures[1] or ''
+            return tok
+
 
     def assignment(self):
         captures = regexec(self.RE_ASSIGNMENT, self.input)
