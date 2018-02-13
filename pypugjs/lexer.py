@@ -399,7 +399,6 @@ class Lexer(object):
             tok.filter = captures[1] or ''
             return tok
 
-
     def assignment(self):
         captures = regexec(self.RE_ASSIGNMENT, self.input)
         if captures:
