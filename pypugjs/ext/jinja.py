@@ -119,7 +119,8 @@ class PyPugJSExtension(Extension):
             loader = loader.app.jinja_loader
         except AttributeError:
             pass
-        self.options["basedir"] = loader.searchpath[0]
+        if len(loader.searchpath):
+            self.options["basedir"] = loader.searchpath[0]
 
         if (not name or
                 (name and not os.path.splitext(name)[1] in self.file_extensions)):
