@@ -222,8 +222,8 @@ class Parser(object):
         return block
 
     def parseInclude(self):
-        path = self.expect('include').val.strip()
-        return nodes.Include(path)
+        tok = self.expect('include')
+        return nodes.Include(path=tok.val.strip(), filter=tok.filter)
 
     def parseTextBlock(self, tag=None):
         text = nodes.Text()
