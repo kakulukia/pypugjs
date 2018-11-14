@@ -216,12 +216,37 @@ exclusions = {
         'unicode',
         'attrs.object',
         'include_mixin',
+        'included_top_level',
+        'included_nested_level',
     },
-    'Mako': {'layout', 'include_mixin'},
-    'Tornado': {'layout', 'include_mixin'},
-    'Jinja2': {'layout'},
-    'Jinja2-variable_start_string': {'layout'},
-    'Django': {'layout'},
+    'Mako': {
+        'layout',
+        'include_mixin',
+        'included_top_level',
+        'included_nested_level',
+        'include-nested-include',
+    },
+    'Tornado': {
+        'layout', 'include_mixin',
+        'include-nested-include',
+        'included_top_level',
+        'included_nested_level',
+    },
+    'Jinja2': {
+        'layout',
+        'included_top_level',
+        'included_nested_level',
+    },
+    'Jinja2-variable_start_string': {
+        'layout',
+        'included_top_level',
+        'included_nested_level',
+    },
+    'Django': {
+        'layout',
+        'included_top_level',
+        'included_nested_level',
+    },
 }
 
 
