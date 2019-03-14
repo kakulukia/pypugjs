@@ -18,8 +18,8 @@ In `settings.py`, add a `loader` to `TEMPLATES` like so:
                     'django.contrib.auth.context_processors.auth',
                     'django.contrib.messages.context_processors.messages',
                 ],
+                # PyPugJS part:
                 'loaders': [
-                    # PyPugJS part:   ##############################
                     ('pypugjs.ext.django.Loader', (
                         'django.template.loaders.filesystem.Loader',
                         'django.template.loaders.app_directories.Loader',
