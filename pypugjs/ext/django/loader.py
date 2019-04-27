@@ -81,13 +81,13 @@ class Loader(BaseLoader):
         wagtail admin instance.
         """
         template = self.template_cache.get(template_name)
-        if not template or self.debug:
+        if not template or self.debug or (skip and template.origin in skip):
             try:
                 template = super(Loader, self).get_template(template_name, skip)
             # TODO: Change IOError to FileNotFoundError after future==0.17.0
             except IOError:
                 template = 'TemplateDoesNotExist'
-            self.template_cache[template_name] = template
+            self.template_cache.setdefault(template_name, template)
 
         if template == 'TemplateDoesNotExist':
             raise TemplateDoesNotExist(template_name)
