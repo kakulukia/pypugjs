@@ -34,9 +34,14 @@ In `settings.py`, add a `loader` to `TEMPLATES` like so:
 
 In case you want to use Djangos translation feature add the following call to settings.py
 
+.. code:: python
+
     from pypugjs.ext.django.compiler import enable_pug_translations
 
     enable_pug_translations()
+
+The PyPugJS template loader features the built in Django functionality of caching templates
+when ``DEBUG=False`` and re-reading from file system when ``DEBUG=True``.
 
 
 Jinja2
@@ -73,7 +78,7 @@ While test.pug looks like this:
 Mako
 ----
 
-Just add  `pypugjs.ext.mako.preprocessor` as preprocessor
+Just add  ``pypugjs.ext.mako.preprocessor`` as preprocessor
 
 .. code:: python
 
