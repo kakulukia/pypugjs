@@ -20,6 +20,11 @@ class Loader(BaseLoader):
         self.engine = engine
         self.template_cache = {}
         self._loaders = loaders
+        self.debug = (
+            settings.TEMPLATE_DEBUG
+            if hasattr(settings, 'TEMPLATE_DEBUG')
+            else settings.DEBUG
+        )
 
     @cached_property
     def loaders(self):
@@ -45,19 +50,14 @@ class Loader(BaseLoader):
 
     def get_contents(self, origin):
 
-        contents = self.template_cache.get(origin.name)
-        if settings.DEBUG or not contents:
-            if os.path.splitext(origin.template_name)[1] in ('.pug', '.jade'):
-                try:
-                    contents = origin.loader.get_contents(origin)
-                    contents = self.include_pug_sources(contents)
-                    contents = process(contents, filename=origin.template_name, compiler=Compiler)
-                # TODO: Change IOError to FileNotFoundError after future==0.17.0
-                except IOError:
-                    raise TemplateDoesNotExist(origin)
-            else:
-                contents = origin.loader.get_contents(origin)
-            self.template_cache[origin.name] = contents
+        if os.path.splitext(origin.template_name)[1] in ('.pug', '.jade'):
+            contents = origin.loader.get_contents(origin)
+            contents = self.include_pug_sources(contents)
+            contents = process(
+                contents, filename=origin.template_name, compiler=Compiler
+            )
+        else:
+            contents = origin.loader.get_contents(origin)
 
         return contents
 
@@ -68,3 +68,28 @@ class Loader(BaseLoader):
         for loader in self.loaders:
             for origin in loader.get_template_sources(template_name):
                 yield origin
+
+    def get_template(self, template_name, skip=None, **kwargs):
+        """
+        Call self.get_template_sources() and return a Template object for
+        the first template matching template_name. If skip is provided, ignore
+        template origins in skip. This is used to avoid recursion during
+        template extending.
+
+        This version includes a little caching. The not existing templates are
+        also cached because this resulted in a major loading issued in a
+        wagtail admin instance.
+        """
+        template = self.template_cache.get(template_name)
+        if not template or self.debug:
+            try:
+                template = super(Loader, self).get_template(template_name, skip)
+            # TODO: Change IOError to FileNotFoundError after future==0.17.0
+            except IOError:
+                template = 'TemplateDoesNotExist'
+            self.template_cache[template_name] = template
+
+        if template == 'TemplateDoesNotExist':
+            raise TemplateDoesNotExist(template_name)
+
+        return template

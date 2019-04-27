@@ -7,7 +7,8 @@ import os
 import six
 
 import pypugjs
-from pypugjs.runtime import iteration, escape
+from pypugjs.exceptions import CurrentlyNotSupported
+from pypugjs.runtime import iteration, escape, open
 
 
 def process_param(key, value, terse=False):
@@ -23,7 +24,8 @@ TYPE_CODE = {
     'if': operator.truth,
     'unless': operator.not_,
     'elsif': operator.truth,
-    'else': lambda v: True}
+    'else': lambda v: True,
+}
 
 
 @contextlib.contextmanager
@@ -95,7 +97,7 @@ class Compiler(pypugjs.compiler.Compiler):
         self.visit(block)
 
     def visitExtends(self, node):
-        raise pypugjs.exceptions.CurrentlyNotSupported()
+        raise CurrentlyNotSupported()
 
     def visitMixin(self, mixin):
         if mixin.block:
@@ -123,7 +125,12 @@ class Compiler(pypugjs.compiler.Compiler):
             val = self.var_processor(val)
             val = self._do_eval(val)
             if code.escape:
-                val = str(val).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+                val = (
+                    str(val)
+                    .replace('&', '&amp;')
+                    .replace('<', '&lt;')
+                    .replace('>', '&gt;')
+                )
             self.buf.append(val)
         if code.block:
             self.visit(code.block)
@@ -165,7 +172,9 @@ class Compiler(pypugjs.compiler.Compiler):
             classes = [six.text_type(c) for c in classes]
             params.append(('class', " ".join(classes)))
         if params:
-            self.buf.append(" " + " ".join([process_param(k, v, self.terse) for (k, v) in params]))
+            self.buf.append(
+                " " + " ".join([process_param(k, v, self.terse) for (k, v) in params])
+            )
 
 
 HTMLCompiler = Compiler

@@ -18,7 +18,7 @@ class Token:
 def regexec(regex, input):
     matches = regex.match(input)
     if matches:
-        return (input[matches.start():matches.end()],) + matches.groups()
+        return (input[matches.start() : matches.end()],) + matches.groups()
     return None
 
 
@@ -64,7 +64,7 @@ class Lexer(object):
     RE_DOCTYPE = re.compile(r'^(?:!!!|doctype) *([^\n]+)?')
     RE_ID = re.compile(r'^#([\w-]+)')
     RE_CLASS = re.compile(r'^\.([\w-]+)')
-    RE_STRING = re.compile(r'^(?:\| ?)([^\n]+)')
+    RE_STRING = re.compile(r'^(?:\| ?)([^\n]*)')
     RE_TEXT = re.compile(r'^([^\n]+)')
     RE_EXTENDS = re.compile(r'^extends? +([^\n]+)')
     RE_PREPEND = re.compile(r'^prepend +([^\n]+)')
@@ -105,7 +105,12 @@ class Lexer(object):
         self.isTextBlock = False
 
     def tok(self, type, val=None):
-        return Token(type=type, line=self.lineno, val=val, inline_level=self.options.get('inline_level', 0))
+        return Token(
+            type=type,
+            line=self.lineno,
+            val=val,
+            inline_level=self.options.get('inline_level', 0),
+        )
 
     def consume(self, len):
         self.input = self.input[len:]
@@ -295,15 +300,22 @@ class Lexer(object):
         sval_stripped = [i.strip() for i in sval]
 
         if sval_stripped.count('"') % 2 != 0 or sval_stripped.count("'") % 2 != 0:
-            raise Exception('Unbalanced quotes found inside inline PugJS at line %s.' % self.lineno)
+            raise Exception(
+                'Unbalanced quotes found inside inline PugJS at line %s.' % self.lineno
+            )
 
         sval_replaced = replace_string_brackets(sval)
         start_inline = self.RE_INLINE.search(sval_replaced).start()
 
         try:
-            closing = start_inline + detect_closing_bracket(sval_replaced[start_inline:])
+            closing = start_inline + detect_closing_bracket(
+                sval_replaced[start_inline:]
+            )
         except IndexError:
-            raise Exception('The end of the string was reached with no closing bracket found at line %s.' % self.lineno)
+            raise Exception(
+                'The end of the string was reached with no closing bracket found at line %s.'
+                % self.lineno
+            )
 
         textl = val[:start_inline]
         code = val[start_inline:closing][2:-1]
@@ -475,8 +487,12 @@ class Lexer(object):
                     self.literal = True
 
                 def __str__(self):
-                    return dict(key=self.key, val=self.val, quote=self.quote,
-                                literal=self.literal).__str__()
+                    return dict(
+                        key=self.key,
+                        val=self.val,
+                        quote=self.quote,
+                        literal=self.literal,
+                    ).__str__()
 
             ns = Namespace()
 
@@ -485,11 +501,15 @@ class Lexer(object):
 
             def interpolate(attr):
                 attr, num = self.RE_ATTR_INTERPOLATE.subn(
-                    lambda matchobj: '%s+"{}".format(%s)+%s' % (ns.quote, matchobj.group(1), ns.quote), attr)
+                    lambda matchobj: '%s+"{}".format(%s)+%s'
+                    % (ns.quote, matchobj.group(1), ns.quote),
+                    attr,
+                )
                 return attr, (num > 0)
 
             self.consume(index + 1)
             from .utils import odict
+
             tok.attrs = odict()
             tok.static_attrs = set()
             str_nums = list(map(str, range(10)))
@@ -499,10 +519,13 @@ class Lexer(object):
                 real = c
                 if colons and ':' == c:
                     c = '='
-                ns.literal = ns.literal and (state() not in ('object', 'array',
-                                                             'expr'))
+                ns.literal = ns.literal and (state() not in ('object', 'array', 'expr'))
                 # print ns, c, states
-                if c in (',', '\n') or (c == ' ' and state() == 'val' and len(states) == 2 and ns.val.strip()):
+                if c in (',', '\n') or (
+                    c == ' '
+                    and state() == 'val'
+                    and ns.val.strip()
+                ):
                     s = state()
                     if s in ('expr', 'array', 'string', 'object'):
                         ns.val += c
@@ -525,7 +548,7 @@ class Lexer(object):
                             if ns.key == 'class' and 'class' in tok.attrs:
                                 tok.attrs['class'] = '[%s, %s]' % (
                                     tok.attrs['class'],
-                                    val
+                                    val,
                                 )
                             else:
                                 tok.attrs[ns.key] = val
@@ -583,7 +606,9 @@ class Lexer(object):
                     pass
                 else:
                     s = state()
-                    ns.literal = ns.literal and (s in ('key', 'string') or c in str_nums)
+                    ns.literal = ns.literal and (
+                        s in ('key', 'string') or c in str_nums
+                    )
                     # print c, s, ns.literal
                     if s in ('key', 'key char'):
                         ns.key += c
@@ -621,7 +646,9 @@ class Lexer(object):
             if not self.input:
                 return self.tok('newline')
             if self.input[0] in (' ', '\t'):
-                raise Exception('Invalid indentation, you can use tabs or spaces but not both')
+                raise Exception(
+                    'Invalid indentation, you can use tabs or spaces but not both'
+                )
 
             if '\n' == self.input[0]:
                 return self.tok('newline')
@@ -657,51 +684,55 @@ class Lexer(object):
         return self.stashed() or self.next()
 
     def next(self):
-        return self.deferred() \
-            or self.textBlockContinue() \
-            or self.blank() \
-            or self.eos() \
-            or self.pipelessText() \
-            or self._yield() \
-            or self.doctype() \
-            or self.extends() \
-            or self.append() \
-            or self.prepend() \
-            or self.block() \
-            or self.include() \
-            or self.mixin() \
-            or self.call() \
-            or self.conditional() \
-            or self.each() \
-            or self.assignment() \
-            or self.tag() \
-            or self.textBlockStart() \
-            or self.filter() \
-            or self.code() \
-            or self.id() \
-            or self.className() \
-            or self.attrs() \
-            or self.indent() \
-            or self.comment() \
-            or self.colon() \
-            or self.string() \
+        return (
+            self.deferred()
+            or self.textBlockContinue()
+            or self.blank()
+            or self.eos()
+            or self.pipelessText()
+            or self._yield()
+            or self.doctype()
+            or self.extends()
+            or self.append()
+            or self.prepend()
+            or self.block()
+            or self.include()
+            or self.mixin()
+            or self.call()
+            or self.conditional()
+            or self.each()
+            or self.assignment()
+            or self.tag()
+            or self.textBlockStart()
+            or self.filter()
+            or self.code()
+            or self.id()
+            or self.className()
+            or self.attrs()
+            or self.indent()
+            or self.comment()
+            or self.colon()
+            or self.string()
             or self.text()
+        )
 
 
 class InlineLexer(Lexer):
     def next(self):
-        return self.deferred() \
-            or self.blank() \
-            or self.eos() \
-            or self.pipelessText() \
-            or self.mixin() \
-            or self.call() \
-            or self.assignment() \
-            or self.tag() \
-            or self.code() \
-            or self.id() \
-            or self.className() \
-            or self.attrs() \
-            or self.colon() \
-            or self.string() \
+        return (
+            self.deferred()
+            or self.blank()
+            or self.eos()
+            or self.pipelessText()
+            or self.mixin()
+            or self.call()
+            or self.assignment()
+            or self.tag()
+            or self.code()
+            or self.id()
+            or self.className()
+            or self.attrs()
+            or self.colon()
+            or self.string()
             or self.text()
+        )

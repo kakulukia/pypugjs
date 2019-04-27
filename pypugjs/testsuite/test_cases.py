@@ -20,7 +20,9 @@ try:
     from jinja2 import Environment, FileSystemLoader
     from pypugjs.ext.jinja import PyPugJSExtension
 
-    jinja_env = Environment(extensions=[PyPugJSExtension], loader=FileSystemLoader('cases/'))
+    jinja_env = Environment(
+        extensions=[PyPugJSExtension], loader=FileSystemLoader('cases/')
+    )
 
     def jinja_process(src, filename):
         global jinja_env
@@ -37,8 +39,10 @@ try:
     from pypugjs.ext.jinja import PyPugJSExtension
 
     jinja_env = Environment(
-        extensions=[PyPugJSExtension], loader=FileSystemLoader('cases/'),
-        variable_start_string="{%#.-.**", variable_end_string="**.-.#%}"
+        extensions=[PyPugJSExtension],
+        loader=FileSystemLoader('cases/'),
+        variable_start_string="{%#.-.**",
+        variable_end_string="**.-.#%}",
     )
 
     def jinja_process_variable_start_string(src, filename):
@@ -78,36 +82,46 @@ try:
 
     if django.VERSION >= (1, 8, 0):
         config = {
-            'TEMPLATES': [{
-                'BACKEND': 'django.template.backends.django.DjangoTemplates',
-                'DIRS': ["cases/"],
-                'OPTIONS': {
-                    'context_processors': [
-                        'django.template.context_processors.debug',
-                        'django.template.context_processors.request',
-                        'django.contrib.auth.context_processors.auth',
-                        'django.contrib.messages.context_processors.messages',
-                    ],
-                    'loaders': [
-                        ('pypugjs.ext.django.Loader', (
-                            'django.template.loaders.filesystem.Loader',
-                            'django.template.loaders.app_directories.Loader',
-                        ))
-                    ],
-                },
-            }]
+            'TEMPLATES': [
+                {
+                    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+                    'DIRS': ["cases/"],
+                    'OPTIONS': {
+                        'context_processors': [
+                            'django.template.context_processors.debug',
+                            'django.template.context_processors.request',
+                            'django.contrib.auth.context_processors.auth',
+                            'django.contrib.messages.context_processors.messages',
+                        ],
+                        'loaders': [
+                            (
+                                'pypugjs.ext.django.Loader',
+                                (
+                                    'django.template.loaders.filesystem.Loader',
+                                    'django.template.loaders.app_directories.Loader',
+                                ),
+                            )
+                        ],
+                    },
+                }
+            ]
         }
         if django.VERSION >= (1, 9, 0):
-            config['TEMPLATES'][0]['OPTIONS']['builtins'] = ['pypugjs.ext.django.templatetags']
+            config['TEMPLATES'][0]['OPTIONS']['builtins'] = [
+                'pypugjs.ext.django.templatetags'
+            ]
     else:
         config = {
             'TEMPLATE_DIRS': ("cases/",),
             'TEMPLATE_LOADERS': (
-                ('pypugjs.ext.django.Loader', (
-                    'django.template.loaders.filesystem.Loader',
-                    'django.template.loaders.app_directories.Loader',
-                )),
-            )
+                (
+                    'pypugjs.ext.django.Loader',
+                    (
+                        'django.template.loaders.filesystem.Loader',
+                        'django.template.loaders.app_directories.Loader',
+                    ),
+                ),
+            ),
         }
 
     settings.configure(**config)
@@ -120,8 +134,7 @@ try:
     def django_process(src, filename):
         # actually use the django loader to get the sources
         loader = Loader(
-            Engine.get_default(),
-            config['TEMPLATES'][0]['OPTIONS']['loaders']
+            Engine.get_default(), config['TEMPLATES'][0]['OPTIONS']['loaders']
         )
 
         t = loader.get_template(filename)
@@ -138,12 +151,16 @@ try:
     from mako.lookup import TemplateLookup
 
     dirlookup = TemplateLookup(
-        directories=['cases/'], preprocessor=pypugjs.ext.mako.preprocessor)
+        directories=['cases/'], preprocessor=pypugjs.ext.mako.preprocessor
+    )
 
     def mako_process(src, filename):
         t = mako.template.Template(
-            src, lookup=dirlookup, preprocessor=pypugjs.ext.mako.preprocessor,
-            default_filters=['decode.utf8'])
+            src,
+            lookup=dirlookup,
+            preprocessor=pypugjs.ext.mako.preprocessor,
+            default_filters=['decode.utf8'],
+        )
         return t.render()
 
     processors['Mako'] = mako_process
@@ -165,6 +182,7 @@ processors['Html'] = html_process
 
 def run_case(case, process):
     import codecs
+
     global processors
     processor = processors[process]
     with codecs.open('cases/%s.pug' % case, encoding='utf-8') as pugjs_file:
@@ -191,12 +209,19 @@ def run_case(case, process):
 exclusions = {
     # its a pity - the html compiler has the better results for mixins (indentation) but
     # has to be excluded to not "break" the other tests with their false results (bad expected indentation)
-    'Html': {'mixins', 'mixin.blocks', 'layout', 'unicode', 'attrs.object', 'include_mixin'},
+    'Html': {
+        'mixins',
+        'mixin.blocks',
+        'layout',
+        'unicode',
+        'attrs.object',
+        'include_mixin',
+    },
     'Mako': {'layout', 'include_mixin'},
     'Tornado': {'layout', 'include_mixin'},
     'Jinja2': {'layout'},
     'Jinja2-variable_start_string': {'layout'},
-    'Django': {'layout'}
+    'Django': {'layout'},
 }
 
 
@@ -205,6 +230,7 @@ def test_case_generator():
     global processors
 
     import os
+
     for dirname, dirnames, filenames in os.walk('cases/'):
         # raise Exception(filenames)
         filenames = filter(lambda x: x.endswith('.pug'), filenames)

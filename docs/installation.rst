@@ -1,5 +1,5 @@
-Django
-------
+Django 1.11+
+------------
 
 In `settings.py`, add a `loader` to `TEMPLATES` like so:
 
@@ -18,8 +18,8 @@ In `settings.py`, add a `loader` to `TEMPLATES` like so:
                     'django.contrib.auth.context_processors.auth',
                     'django.contrib.messages.context_processors.messages',
                 ],
+                # PyPugJS part:
                 'loaders': [
-                    # PyPugJS part:   ##############################
                     ('pypugjs.ext.django.Loader', (
                         'django.template.loaders.filesystem.Loader',
                         'django.template.loaders.app_directories.Loader',
@@ -32,19 +32,42 @@ In `settings.py`, add a `loader` to `TEMPLATES` like so:
         },
     ]
 
-In case you want to use Djangos translation feature, be sure to put this import statement at the top of your settings.py.
+In case you want to use Djangos translation feature add the following call to settings.py
 
-    import pypugjs.ext.django  # noqa
+    from pypugjs.ext.django.compiler import enable_pug_translations
+
+    enable_pug_translations()
 
 
 Jinja2
 ------
 
-Just add `pypugjs.ext.jinja.PyPugJSExtension` as extension
+Install the jinja2 lib
+
+.. code:: shell
+
+    pip install jinja2
+
+
+In your code add the pug extension like this:
 
 .. code:: python
 
-    jinja_env = Environment(extensions=['pypugjs.ext.jinja.PyPugJSExtension'])
+    from jinja2 import Environment, FileSystemLoader
+
+    env = Environment(
+        loader=FileSystemLoader('.'),
+        extensions=['pypugjs.ext.jinja.PyPugJSExtension']
+    )
+
+    template = env.get_template('test.pug')
+    print(template.render(name="World"))
+
+While test.pug looks like this:
+
+.. code:: pug
+
+    .foo Hello {{ name }}!
 
 
 Mako
@@ -69,6 +92,7 @@ Just add  `pypugjs.ext.jinja.PyPugJSExtension` as extension to the environment o
 
     app.jinja_env.add_extension('pypugjs.ext.jinja.PyPugJSExtension')
 
+Have a look at a lil example here: https://github.com/kakulukia/pypugjs/tree/master/examples/flask
 
 Pyramid
 -------

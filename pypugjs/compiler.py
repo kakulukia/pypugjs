@@ -9,19 +9,19 @@ class Compiler(object):
         '5': '<!DOCTYPE html>',
         'xml': '<?xml version="1.0" encoding="utf-8" ?>',
         'default': '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" '
-                   '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">',
+        '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">',
         'transitional': '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" '
-                        '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">',
+        '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">',
         'strict': '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" '
-                  '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">',
+        '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">',
         'frameset': '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" '
-                    '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">',
+        '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">',
         '1.1': '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" '
-               '"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">',
+        '"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">',
         'basic': '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.1//EN" '
-                 '"http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">',
+        '"http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd">',
         'mobile': '<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.2//EN" '
-                  '"http://www.openmobilealliance.org/tech/DTD/xhtml-mobile12.dtd">',
+        '"http://www.openmobilealliance.org/tech/DTD/xhtml-mobile12.dtd">',
     }
     inline_tags = [
         'a',
@@ -45,17 +45,7 @@ class Compiler(object):
         'sup',
         'textarea',
     ]
-    self_closing = [
-        'meta',
-        'img',
-        'link',
-        'input',
-        'area',
-        'base',
-        'col',
-        'br',
-        'hr',
-    ]
+    self_closing = ['meta', 'img', 'link', 'input', 'area', 'base', 'col', 'br', 'hr']
     auto_close_code = [
         'if',
         'for',
@@ -70,7 +60,7 @@ class Compiler(object):
         'macro',
         'localize',
         'compress',
-        'ra,'
+        'ra,',
     ]
     filters = {}
 
@@ -118,8 +108,7 @@ class Compiler(object):
         return compiled
 
     def setDoctype(self, name):
-        self.doctype = self.doctypes.get(name or 'default',
-                                         '<!DOCTYPE %s>' % name)
+        self.doctype = self.doctypes.get(name or 'default', '<!DOCTYPE %s>' % name)
         self.terse = name in ['5', 'html']
         self.xml = self.doctype.startswith('<?xml')
 
@@ -162,12 +151,14 @@ class Compiler(object):
     def visitCodeBlock(self, block):
         self.buffer('{%% block %s %%}' % block.name)
         if block.mode == 'prepend':
-            self.buffer('%ssuper()%s' % (self.variable_start_string,
-                                         self.variable_end_string))
+            self.buffer(
+                '%ssuper()%s' % (self.variable_start_string, self.variable_end_string)
+            )
         self.visitBlock(block)
         if block.mode == 'append':
-            self.buffer('%ssuper()%s' % (self.variable_start_string,
-                                         self.variable_end_string))
+            self.buffer(
+                '%ssuper()%s' % (self.variable_start_string, self.variable_end_string)
+            )
         self.buffer('{% endblock %}')
 
     def visitDoctype(self, doctype=None):
@@ -184,9 +175,15 @@ class Compiler(object):
             self.visitBlock(mixin.block)
             self.buffer('{% endmacro %}')
         else:
-            self.buffer('%s%s(%s)%s' % (
-                self.variable_start_string, mixin.name,
-                mixin.args, self.variable_end_string))
+            self.buffer(
+                '%s%s(%s)%s'
+                % (
+                    self.variable_start_string,
+                    mixin.name,
+                    mixin.args,
+                    self.variable_end_string,
+                )
+            )
 
     def visitTag(self, tag):
         self.indents += 1
@@ -206,7 +203,9 @@ class Compiler(object):
             t = tag.text.nodes[0]
             if t.startswith(u'/'):
                 if len(t) > 1:
-                    raise Exception('%s is self closing and should not have content.' % name)
+                    raise Exception(
+                        '%s is self closing and should not have content.' % name
+                    )
                 closed = True
 
         if tag.buffer:
@@ -269,8 +268,13 @@ class Compiler(object):
                 else:
                     filter_string = ''
 
-            return self.variable_start_string + matchobj.group(3) + \
-                filter_string + self.variable_end_string
+            return (
+                self.variable_start_string
+                + matchobj.group(3)
+                + filter_string
+                + self.variable_end_string
+            )
+
         return self.RE_INTERPOLATE.sub(repl, text)
 
     def visitText(self, text):
@@ -315,7 +319,11 @@ class Compiler(object):
         if not comment.buffer:
             return
         isConditional = comment.val.strip().startswith('if')
-        self.buffer('<!--[%s]>' % comment.val.strip() if isConditional else '<!--%s' % comment.val)
+        self.buffer(
+            '<!--[%s]>' % comment.val.strip()
+            if isConditional
+            else '<!--%s' % comment.val
+        )
         self.visit(comment.block)
         self.buffer('<![endif]-->' if isConditional else '-->')
 
@@ -324,9 +332,11 @@ class Compiler(object):
             'if': lambda x: 'if %s' % x,
             'unless': lambda x: 'if not %s' % x,
             'elif': lambda x: 'elif %s' % x,
-            'else': lambda x: 'else'
+            'else': lambda x: 'else',
         }
-        self.buf.append('{%% %s %%}' % TYPE_CODE[conditional.type](conditional.sentence))
+        self.buf.append(
+            '{%% %s %%}' % TYPE_CODE[conditional.type](conditional.sentence)
+        )
         if conditional.block:
             self.visit(conditional.block)
             for next in conditional.next:
@@ -336,8 +346,12 @@ class Compiler(object):
 
     def visitVar(self, var, escape=False):
         var = self.var_processor(var)
-        return ('%s%s%s%s' % (self.variable_start_string, var,
-                              '|escape' if escape else '', self.variable_end_string))
+        return '%s%s%s%s' % (
+            self.variable_start_string,
+            var,
+            '|escape' if escape else '',
+            self.variable_end_string,
+        )
 
     def visitCode(self, code):
         if code.buffer:
@@ -358,12 +372,19 @@ class Compiler(object):
                     self.buf.append('{%% end%s %%}' % code_tag)
 
     def visitEach(self, each):
-        self.buf.append('{%% for %s in %s|__pypugjs_iter:%d %%}' % (','.join(each.keys), each.obj, len(each.keys)))
+        self.buf.append(
+            '{%% for %s in %s|__pypugjs_iter:%d %%}'
+            % (','.join(each.keys), each.obj, len(each.keys))
+        )
         self.visit(each.block)
         self.buf.append('{% endfor %}')
 
     def attributes(self, attrs):
-        return "%s__pypugjs_attrs(%s)%s" % (self.variable_start_string, attrs, self.variable_end_string)
+        return "%s__pypugjs_attrs(%s)%s" % (
+            self.variable_start_string,
+            attrs,
+            self.variable_end_string,
+        )
 
     def visitDynamicAttributes(self, attrs):
         buf, classes, params = [], [], {}

@@ -11,7 +11,6 @@ ITER_FUNC = '__pypugjs_iter'
 
 
 class Compiler(_Compiler):
-
     def visitCodeBlock(self, block):
         self.buffer('{%% block %s %%}' % block.name)
         if block.mode == 'append':
@@ -22,7 +21,9 @@ class Compiler(_Compiler):
         self.buffer('{% end %}')
 
     def interpolate(self, text, escape=True):
-        return self._interpolate(text, lambda x: '{%% raw %s(%s) %%}' % (ESCAPE_FUNC, x))
+        return self._interpolate(
+            text, lambda x: '{%% raw %s(%s) %%}' % (ESCAPE_FUNC, x)
+        )
 
     def visitMixin(self, mixin):
         raise CurrentlyNotSupported('mixin')
@@ -52,7 +53,10 @@ class Compiler(_Compiler):
                     self.buf.append('{%% end%s %%}' % codeTag)
 
     def visitEach(self, each):
-        self.buf.append('{%% for %s in %s(%s,%s) %%}' % (','.join(each.keys), ITER_FUNC, each.obj, len(each.keys)))
+        self.buf.append(
+            '{%% for %s in %s(%s,%s) %%}'
+            % (','.join(each.keys), ITER_FUNC, each.obj, len(each.keys))
+        )
         self.visit(each.block)
         self.buf.append('{% end %}')
 
@@ -61,9 +65,11 @@ class Compiler(_Compiler):
             'if': lambda x: 'if %s' % x,
             'unless': lambda x: 'if not %s' % x,
             'elif': lambda x: 'elif %s' % x,
-            'else': lambda x: 'else'
+            'else': lambda x: 'else',
         }
-        self.buf.append('{%% %s %%}' % TYPE_CODE[conditional.type](conditional.sentence))
+        self.buf.append(
+            '{%% %s %%}' % TYPE_CODE[conditional.type](conditional.sentence)
+        )
         if conditional.block:
             self.visit(conditional.block)
             for next in conditional.next:
@@ -83,11 +89,9 @@ class Template(tornado.template.Template):
 
         super(Template, self).__init__(template_string, name, *args, **kwargs)
         if is_pugjs:
-            self.namespace.update({
-                ATTRS_FUNC: attrs,
-                ESCAPE_FUNC: escape,
-                ITER_FUNC: iteration
-            })
+            self.namespace.update(
+                {ATTRS_FUNC: attrs, ESCAPE_FUNC: escape, ITER_FUNC: iteration}
+            )
 
 
 # Patch tornado template engine for preprocess PugJS templates

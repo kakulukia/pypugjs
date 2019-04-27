@@ -14,7 +14,7 @@ def do_evaluate(parser, token):
     code = token.contents
     first_space = code.find(' ')
     if first_space >= 0:
-        code = code[first_space + 1:]
+        code = code[first_space + 1 :]
     return Evaluator(code)
 
 
@@ -26,13 +26,13 @@ class Evaluator(template.Node):
 
     def render(self, context):
         """Evaluates the code in the page and returns the result"""
-        modules = {
-            'pypugjs': __import__('pypugjs')
-        }
+        modules = {'pypugjs': __import__('pypugjs')}
         context['false'] = False
         context['true'] = True
         try:
-            return six.text_type(eval('pypugjs.runtime.attrs(%s)' % self.code, modules, context))
+            return six.text_type(
+                eval('pypugjs.runtime.attrs(%s)' % self.code, modules, context)
+            )
         except NameError:
             return ''
 
@@ -43,7 +43,7 @@ def do_set(parser, token):
     code = token.contents
     firstspace = code.find(' ')
     if firstspace >= 0:
-        code = code[firstspace + 1:]
+        code = code[firstspace + 1 :]
     return Setter(code)
 
 
@@ -55,8 +55,7 @@ class Setter(template.Node):
 
     def render(self, context):
         """Evaluates the code in the page and returns the result"""
-        modules = {
-        }
+        modules = {}
         context['false'] = False
         context['true'] = True
         new_ctx = eval('dict(%s)' % self.code, modules, context)
@@ -69,6 +68,7 @@ register.filter('__pypugjs_iter', iteration)
 
 # Support for macros in Django, taken from https://gist.github.com/skyl/1715202
 # Author: Skylar Saveland
+
 
 def _setup_macros_dict(parser):
     # Metadata of each macro are stored in a new attribute
@@ -107,8 +107,10 @@ def do_macro(parser, token):
         args = token.split_contents()
         macro_name, args = args[1], args[2:]
     except IndexError:
-        m = ("'%s' tag requires at least one argument (macro name)"
-             % token.contents.split()[0])
+        m = (
+            "'%s' tag requires at least one argument (macro name)"
+            % token.contents.split()[0]
+        )
         raise template.TemplateSyntaxError(m)
     # TODO: could do some validations here,
     # for now, "blow your head clean off"
@@ -134,8 +136,10 @@ def do_loadmacros(parser, token):
     try:
         tag_name, filename = token.split_contents()
     except IndexError:
-        m = ("'%s' tag requires at least one argument (macro name)"
-             % token.contents.split()[0])
+        m = (
+            "'%s' tag requires at least one argument (macro name)"
+            % token.contents.split()[0]
+        )
         raise template.TemplateSyntaxError(m)
     if filename[0] in ('"', "'") and filename[-1] == filename[0]:
         filename = filename[1:-1]
@@ -151,7 +155,6 @@ def do_loadmacros(parser, token):
 
 
 class UseMacroNode(template.Node):
-
     def __init__(self, macro, fe_args, fe_kwargs):
         self.macro = macro
         self.fe_args = fe_args
@@ -170,7 +173,9 @@ class UseMacroNode(template.Node):
             if name in self.fe_kwargs:
                 context[name] = self.fe_kwargs[name].resolve(context)
             else:
-                context[name] = FilterExpression(default, self.macro.parser).resolve(context)
+                context[name] = FilterExpression(default, self.macro.parser).resolve(
+                    context
+                )
 
         return self.macro.nodelist.render(context)
 
@@ -181,8 +186,10 @@ def do_usemacro(parser, token):
         args = token.split_contents()
         macro_name, values = args[1], args[2:]
     except IndexError:
-        m = ("'%s' tag requires at least one argument (macro name)"
-             % token.contents.split()[0])
+        m = (
+            "'%s' tag requires at least one argument (macro name)"
+            % token.contents.split()[0]
+        )
         raise template.TemplateSyntaxError(m)
     try:
         macro = parser._macros[macro_name]

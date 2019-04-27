@@ -11,7 +11,7 @@ PyPugJS |PyPiPackage|_ |BuildStatus|_ |Coverage|_
 .. _Coverage: https://codecov.io/gh/kakulukia/pypugjs
 
 **PyPugJS is a fork of** `PyJade <http://github.com/syrusakbary/pyjade>`_
-**with the name Jade changed to** `PugsJS <https://github.com/pugjs/pug>`_.
+**with the name Jade changed to** `PugJS <https://github.com/pugjs/pug>`_.
 
 **Additional disclaimer:** Since the original pypugjs died i took the liberty to keep it alive, because
 since starting to work with the jade compiler for node I hate writing HTML and want to continue using it in my Django projects.
@@ -58,7 +58,7 @@ This code
     html(lang="en")
       head
         title= pageTitle
-        script(type='text/javascript')
+        script(type='text/javascript').
           if (foo) {
              bar()
           }

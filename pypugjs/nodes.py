@@ -96,10 +96,12 @@ class Include(Node):
 
 
 class Conditional(Node):
-    may_contain_tags = {'if': ['elif', 'else'],
-                        'for': ['else'],
-                        'elif': ['elif', 'else'],
-                        'unless': ['elif', 'else']}
+    may_contain_tags = {
+        'if': ['elif', 'else'],
+        'for': ['else'],
+        'elif': ['elif', 'else'],
+        'unless': ['elif', 'else'],
+    }
 
     def __init__(self, type, sentence, block=None):
         self.type = type
@@ -188,7 +190,13 @@ class Tag(Node):
                 attrs.append(d)
         if classes:
             if static_classes:
-                classes = [dict(name='class', val='"%s"' % ' '.join([a['val'][1:-1] for a in classes]), static=True)]
+                classes = [
+                    dict(
+                        name='class',
+                        val='"%s"' % ' '.join([a['val'][1:-1] for a in classes]),
+                        static=True,
+                    )
+                ]
             else:
                 for attr in classes:
                     attr['static'] = static_classes

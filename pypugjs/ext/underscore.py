@@ -45,8 +45,10 @@ class Compiler(_Compiler):
     def visitEach(self, each):
         # self.buf.append('{%% for %s in %s %%}'%(','.join(each.keys),each.obj))
         __i = self._i.next()
-        self.buf.append('<%% for (_i_%s = 0, _len_%s = %s.length; _i_%s < _len_%s; _i_%s++) '
-                        '{ ' % (__i, __i, each.obj, __i, __i, __i))
+        self.buf.append(
+            '<%% for (_i_%s = 0, _len_%s = %s.length; _i_%s < _len_%s; _i_%s++) '
+            '{ ' % (__i, __i, each.obj, __i, __i, __i)
+        )
         if len(each.keys) > 1:
             for i, k in enumerate(each.keys):
                 self.buf.append('%s = %s[_i_%s][%s];' % (k, each.obj, __i, i))
@@ -93,16 +95,20 @@ class Compiler(_Compiler):
             classes = [six.text_type(c) for c in classes]
             params.append(('class', " ".join(classes)))
         if params:
-            self.buf.append(" " + " ".join([process_param(k, v, self.terse) for (k, v) in params]))
+            self.buf.append(
+                " " + " ".join([process_param(k, v, self.terse) for (k, v) in params])
+            )
 
     def visitConditional(self, conditional):
         TYPE_CODE = {
             'if': lambda x: 'if (%s)' % x,
             'unless': lambda x: 'if (!%s)' % x,
             'elif': lambda x: '} else if (%s)' % x,
-            'else': lambda x: '} else'
+            'else': lambda x: '} else',
         }
-        self.buf.append('\n<%% %s { %%>' % TYPE_CODE[conditional.type](conditional.sentence))
+        self.buf.append(
+            '\n<%% %s { %%>' % TYPE_CODE[conditional.type](conditional.sentence)
+        )
         if conditional.block:
             self.visit(conditional.block)
             for next in conditional.next:

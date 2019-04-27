@@ -23,6 +23,7 @@ try:
     def coffeescript_filter(x, y):
         return '<script>%s</script>' % coffeescript.compile(x)
 
+
 except ImportError:
     pass
 
@@ -32,6 +33,7 @@ try:
     @register_filter('markdown')
     def markdown_filter(x, y):
         return markdown.markdown(x, output_format='html5')
+
 
 except ImportError:
     pass

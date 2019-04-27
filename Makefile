@@ -25,7 +25,6 @@ init: ## create virtualenv for python3
 
 init2: ## create virtualenv for python2
 	pipenv install --two
-	pipenv install "django<2.0"
 
 lint: ## check style with flake8
 #	@echo "\nlooking for lints .."
@@ -35,7 +34,7 @@ lint: ## check style with flake8
 test: ## run testsuite
 	@SCRIPT_DIR=$$( cd "$$( dirname "$$0" )" && pwd ); \
 	export PYTHONPATH=$$PYTHONPATH:$$SCRIPT_DIR; \
-	nosetests -w pypugjs/testsuite/  # --nocapture for debugging
+	nosetests -w pypugjs/testsuite/ # --nocapture  # for debugging
 	@make lint
 
 coverage:  ## test and generate coverage data
@@ -50,4 +49,23 @@ view-coverage: coverage ## open coverage report in the browser
 	@open htmlcov/index.html
 
 release: clean ## package and upload a release (working dir must be clean)
-	@scripts/bumpversion.sh && python setup.py bdist_wheel && twine upload dist/*
+	@while true; do \
+		CURRENT=`python -c "import pypugjs; print(pypugjs.__version__)"`; \
+		echo ""; \
+		echo "=== The current version is $$CURRENT - what's the next one?"; \
+		echo "==========================================================="; \
+		echo "1 - new major version"; \
+		echo "2 - new minor version"; \
+		echo "3 - patch"; \
+		echo "4 - keep the current version"; \
+		echo ""; \
+		read yn; \
+		case $$yn in \
+			1 ) bumpversion major; break;; \
+			2 ) bumpversion minor; break;; \
+			3 ) bumpversion patch; break;; \
+			4 ) break;; \
+			* ) echo "Please answer 1-3.";; \
+		esac \
+	done
+	@python setup.py bdist_wheel && twine upload dist/*

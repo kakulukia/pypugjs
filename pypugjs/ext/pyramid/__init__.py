@@ -33,7 +33,9 @@ def add_pugjs_renderer(config, extension, mako_settings_prefix='mako.'):
         settings = config.registry.settings
         settings['{0}preprocessor'.format(mako_settings_prefix)] = preprocessor
 
-        opts = parse_options_from_settings(settings, mako_settings_prefix, config.maybe_dotted)
+        opts = parse_options_from_settings(
+            settings, mako_settings_prefix, config.maybe_dotted
+        )
         lookup = PkgResourceTemplateLookup(**opts)
 
         renderer_factory.lookup = lookup

@@ -66,8 +66,10 @@ class Parser(object):
         if t == string:
             return self.advance()
         else:
-            raise Exception('expected "%s" but got "%s" in file %s on line %d' %
-                            (string, t, self.filename, self.line()))
+            raise Exception(
+                'expected "%s" but got "%s" in file %s on line %d'
+                % (string, t, self.filename, self.line())
+            )
 
     def accept(self, attrs):
         if self.peek().type == attrs:
@@ -92,8 +94,10 @@ class Parser(object):
         if hasattr(self, funcName):
             return getattr(self, funcName)()
         else:
-            raise Exception('unexpected token "%s" in file %s on line %d' %
-                            (t, self.filename, self.line()))
+            raise Exception(
+                'unexpected token "%s" in file %s on line %d'
+                % (t, self.filename, self.line())
+            )
 
     def parseString(self):
         tok = self.expect('string')
@@ -216,7 +220,11 @@ class Parser(object):
         block = self.expect('block')
         mode = block.mode
         name = block.val.strip()
-        block = self.block(cls=nodes.CodeBlock) if 'indent' == self.peek().type else nodes.CodeBlock(nodes.Literal(''))
+        block = (
+            self.block(cls=nodes.CodeBlock)
+            if 'indent' == self.peek().type
+            else nodes.CodeBlock(nodes.Literal(''))
+        )
         block.mode = mode
         block.name = name
         return block
@@ -282,7 +290,10 @@ class Parser(object):
             tag.text = self.parseText()
             return
 
-        while self.peek().inline_level == tag.inline_level and self.peek().type == 'string':
+        while (
+            self.peek().inline_level == tag.inline_level
+            and self.peek().type == 'string'
+        ):
             tag.block.append(self.parseExpr())
 
             if self.peek().inline_level > tag.inline_level:
@@ -295,8 +306,10 @@ class Parser(object):
 
         if ':' == self.lookahead(i).type:
             if 'indent' == self.lookahead(i + 1).type:
-                raise Exception('unexpected token "indent" in file %s on line %d' %
-                                (self.filename, self.line()))
+                raise Exception(
+                    'unexpected token "indent" in file %s on line %d'
+                    % (self.filename, self.line())
+                )
 
         tok = self.advance()
         tag = nodes.Tag(tok.val, buffer=tok.val[0] == '#')

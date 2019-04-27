@@ -2,7 +2,6 @@ from pypugjs import runtime
 
 
 class TestIteration(object):
-
     def test_it_returns_mappings_unaltered(self):
         mapping = {}
         assert runtime.iteration(mapping, 1) is mapping

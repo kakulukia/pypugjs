@@ -91,7 +91,9 @@ def decorate_templatize(func):
 
 
 # fix translation for pug templates
-template.templatize = decorate_templatize(template.templatize)
+def enable_pug_translations():
+    template.templatize = decorate_templatize(template.templatize)
+
 
 try:
     from django.contrib.markup.templatetags.markup import markdown
@@ -99,6 +101,7 @@ try:
     @register_filter('markdown')
     def markdown_filter(x, y):
         return markdown(x)
+
 
 except ImportError:
     pass

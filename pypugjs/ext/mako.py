@@ -1,5 +1,6 @@
 from pypugjs import Compiler as _Compiler
 from pypugjs.utils import process
+
 ATTRS_FUNC = '__pypugjs_attrs'
 ITER_FUNC = '__pypugjs_iter'
 
@@ -8,8 +9,11 @@ class Compiler(_Compiler):
     useRuntime = True
 
     def compile_top(self):
-        return '# -*- coding: utf-8 -*-\n<%%! from pypugjs.runtime import attrs as %s, ' \
-               'iteration as %s\nfrom mako.runtime import Undefined %%>' % (ATTRS_FUNC, ITER_FUNC)
+        return (
+            '# -*- coding: utf-8 -*-\n<%%! from pypugjs.runtime import attrs as %s, '
+            'iteration as %s\nfrom mako.runtime import Undefined %%>'
+            % (ATTRS_FUNC, ITER_FUNC)
+        )
 
     def interpolate(self, text, escape=True):
         return self._interpolate(text, lambda x: '${%s}' % x)
@@ -57,9 +61,11 @@ class Compiler(_Compiler):
             'if': lambda x: 'if %s' % x,
             'unless': lambda x: 'if not %s' % x,
             'elif': lambda x: 'elif %s' % x,
-            'else': lambda x: 'else'
+            'else': lambda x: 'else',
         }
-        self.buf.append('\\\n%% %s:\n' % TYPE_CODE[conditional.type](conditional.sentence))
+        self.buf.append(
+            '\\\n%% %s:\n' % TYPE_CODE[conditional.type](conditional.sentence)
+        )
         if conditional.block:
             self.visit(conditional.block)
             for next in conditional.next:
@@ -89,7 +95,10 @@ class Compiler(_Compiler):
                     self.buf.append('</%%%s>' % codeTag)
 
     def visitEach(self, each):
-        self.buf.append('\\\n%% for %s in %s(%s,%d):\n' % (','.join(each.keys), ITER_FUNC, each.obj, len(each.keys)))
+        self.buf.append(
+            '\\\n%% for %s in %s(%s,%d):\n'
+            % (','.join(each.keys), ITER_FUNC, each.obj, len(each.keys))
+        )
         self.visit(each.block)
         self.buf.append('\\\n% endfor\n')
 
