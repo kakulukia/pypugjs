@@ -14,10 +14,6 @@ from .compiler import Compiler
 class Loader(cached.Loader):
     is_usable = True
 
-    def __init__(self, engine, loaders):
-        super(Loader, self).__init__(engine, loaders)
-        self.debug = getattr(settings, 'TEMPLATE_DEBUG', settings.DEBUG)
-
     def include_pug_sources(self, contents):
         """Lets fetch top level pug includes to enable  mixins"""
         match = re.search(r'^include (.*)$', contents, re.MULTILINE)
@@ -30,23 +26,19 @@ class Loader(cached.Loader):
         return contents
 
     def get_contents(self, origin):
-
+        contents = origin.loader.get_contents(origin)
         if os.path.splitext(origin.template_name)[1] in ('.pug', '.jade'):
-            contents = origin.loader.get_contents(origin)
             contents = self.include_pug_sources(contents)
             contents = process(
                 contents, filename=origin.template_name, compiler=Compiler
             )
-        else:
-            contents = origin.loader.get_contents(origin)
-
         return contents
 
     def get_template(self, template_name, skip=None, **kwargs):
         """
         Uses cache if debug is False, otherwise re-reads from file system.
         """
-        if self.debug:
+        if getattr(settings, 'TEMPLATE_DEBUG', settings.DEBUG):
             try:
                 return super(cached.Loader, self).get_template(template_name, skip)
             # TODO: Change IOError to FileNotFoundError after future==0.17.0
