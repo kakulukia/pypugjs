@@ -34,15 +34,15 @@ class Loader(cached.Loader):
             )
         return contents
 
-    def get_template(self, template_name, skip=None, **kwargs):
+    def get_template(self, template_name, **kwargs):
         """
         Uses cache if debug is False, otherwise re-reads from file system.
         """
         if getattr(settings, 'TEMPLATE_DEBUG', settings.DEBUG):
             try:
-                return super(cached.Loader, self).get_template(template_name, skip)
+                return super(cached.Loader, self).get_template(template_name, **kwargs)
             # TODO: Change IOError to FileNotFoundError after future==0.17.0
             except IOError:
                 raise TemplateDoesNotExist(template_name)
 
-        return super(Loader, self).get_template(template_name, skip)
+        return super(Loader, self).get_template(template_name, **kwargs)
