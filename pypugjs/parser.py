@@ -326,7 +326,7 @@ class Parser(object):
             elif 'attrs' == t:
                 tok = self.advance()
                 for n, v in six.iteritems(tok.attrs):
-                    tag.setAttribute(n, v, n in tok.static_attrs)
+                    tag.setAttribute(n, v, tok.static_attrs_quote.get(n))
                 continue
             else:
                 break

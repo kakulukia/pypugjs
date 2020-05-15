@@ -142,7 +142,7 @@ class Tag(Node):
         self.buffer = buffer
 
     @classmethod
-    def static(self, string, only_remove=False):
+    def static(self, string, only_remove=False, quote='"'):
         if not isinstance(string, six.string_types) or not string:
             return string
         if string[0] in ('"', "'"):
@@ -152,10 +152,10 @@ class Tag(Node):
                 return string
         if only_remove:
             return string
-        return '"%s"' % string
+        return "%s%s%s"  % (quote, string, quote)
 
-    def setAttribute(self, name, val, static=True):
-        self._attrs.append(dict(name=name, val=val, static=static))
+    def setAttribute(self, name, val, static_quote=None):
+        self._attrs.append(dict(name=name, val=val, static_quote=static_quote))
         return self
 
     def removeAttribute(self, name):
@@ -176,13 +176,13 @@ class Tag(Node):
         for attr in self._attrs:
             name = attr['name']
             val = attr['val']
-            static = attr['static']  # and isinstance(val,six.string_types)
-            if static:
-                val = self.static(val)
+            static_quote = attr['static_quote']  # and isinstance(val,six.string_types)
+            if static_quote:
+                val = self.static(val, quote=static_quote)
             if val in ("True", "False", "None"):
                 val = val == "True"
-                static = True
-            d = dict(name=name, val=val, static=static)
+                static_quote = '"'
+            d = dict(name=name, val=val, static=static_quote is not None)
             if name == 'class':
                 static_classes = static_classes and static
                 classes.append(d)

@@ -511,7 +511,7 @@ class Lexer(object):
             from .utils import odict
 
             tok.attrs = odict()
-            tok.static_attrs = set()
+            tok.static_attrs_quote = dict()
             str_nums = list(map(str, range(10)))
 
             # print '------'
@@ -554,7 +554,7 @@ class Lexer(object):
                                 tok.attrs[ns.key] = val
                             ns.literal = ns.literal and not is_interpolated
                         if ns.literal:
-                            tok.static_attrs.add(ns.key)
+                            tok.static_attrs_quote[ns.key] = ns.quote
                         ns.reset()
                 elif '=' == c:
                     s = state()
