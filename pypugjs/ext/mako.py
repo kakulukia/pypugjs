@@ -1,5 +1,7 @@
 from pypugjs import Compiler as _Compiler
 from pypugjs.utils import process
+from pypugjs.exceptions import CurrentlyNotSupported
+
 
 ATTRS_FUNC = '__pypugjs_attrs'
 ITER_FUNC = '__pypugjs_iter'
@@ -46,6 +48,9 @@ class Compiler(_Compiler):
 
     def visitAssignment(self, assignment):
         self.buffer('<%% %s = %s %%>' % (assignment.name, assignment.val))
+
+    def visitImport(self, *args, **kwargs):
+        raise CurrentlyNotSupported()
 
     def visitExtends(self, node):
         path = self.format_path(node.path)

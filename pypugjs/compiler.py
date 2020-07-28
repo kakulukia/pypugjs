@@ -307,6 +307,9 @@ class Compiler(object):
             path += self.extension
         return path
 
+    def visitImport(self, node):
+        self.buffer('{%% import %s %%}' % (node.directive,))
+
     def visitExtends(self, node):
         path = self.format_path(node.path)
         self.buffer('{%% extends "%s" %%}' % (path))

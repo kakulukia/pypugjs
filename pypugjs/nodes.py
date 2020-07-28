@@ -89,6 +89,11 @@ class Extends(Node):
         self.path = path
 
 
+class Import(Node):
+    def __init__(self, directive):
+        self.directive = directive
+
+
 class Include(Node):
     def __init__(self, path, extra=None):
         self.path = path

@@ -67,6 +67,7 @@ class Lexer(object):
     RE_STRING = re.compile(r'^(?:\| ?)([^\n]*)')
     RE_TEXT = re.compile(r'^([^\n]+)')
     RE_EXTENDS = re.compile(r'^extends? +([^\n]+)')
+    RE_IMPORT = re.compile(r'^import +([^\n]+)')
     RE_PREPEND = re.compile(r'^prepend +([^\n]+)')
     RE_APPEND = re.compile(r'^append +([^\n]+)')
     RE_BLOCK = re.compile(r'''^block(( +(?:(prepend|append) +)?([^\n]*))|\n)''')
@@ -368,6 +369,9 @@ class Lexer(object):
 
     def text(self):
         return self.scanInlineProcess(self.RE_TEXT, 'text')
+
+    def import_(self):
+        return self.scan(self.RE_IMPORT, 'import')
 
     def extends(self):
         return self.scan(self.RE_EXTENDS, 'extends')
@@ -693,6 +697,7 @@ class Lexer(object):
             or self._yield()
             or self.doctype()
             or self.extends()
+            or self.import_()
             or self.append()
             or self.prepend()
             or self.block()

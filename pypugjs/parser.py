@@ -194,6 +194,10 @@ class Parser(object):
                 break
         return node
 
+    def parseImport(self):
+        directive = self.expect('import').val
+        return nodes.Import(directive)
+
     def parseExtends(self):
         path = self.expect('extends').val.strip('"\'')
         return nodes.Extends(path)

@@ -96,6 +96,9 @@ class Compiler(pypugjs.compiler.Compiler):
         block = parser.parse()
         self.visit(block)
 
+    def visitImport(self, *args, **kwargs):
+        raise CurrentlyNotSupported()
+
     def visitExtends(self, node):
         raise CurrentlyNotSupported()
 
