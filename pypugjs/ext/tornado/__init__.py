@@ -25,6 +25,9 @@ class Compiler(_Compiler):
             text, lambda x: '{%% raw %s(%s) %%}' % (ESCAPE_FUNC, x)
         )
 
+    def visitImport(self, *args, **kwargs):
+        raise CurrentlyNotSupported()
+
     def visitMixin(self, mixin):
         raise CurrentlyNotSupported('mixin')
 

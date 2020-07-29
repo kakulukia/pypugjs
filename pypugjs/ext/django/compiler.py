@@ -43,6 +43,9 @@ class Compiler(_Compiler):
             self.buffer('{{block.super}}')
         self.buffer('{% endblock %}')
 
+    def visitImport(self, *args, **kwargs):
+        raise CurrentlyNotSupported()
+
     def visitAssignment(self, assignment):
         self.buffer('{%% __pypugjs_set %s = %s %%}' % (assignment.name, assignment.val))
 
