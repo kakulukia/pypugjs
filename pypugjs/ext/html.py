@@ -81,7 +81,8 @@ class Compiler(pypugjs.compiler.Compiler):
         return _mixin
 
     def interpolate(self, text, escape=True):
-        return self._interpolate(text, lambda x: str(self._do_eval(x)))
+        esc = self.html_escape if escape else lambda x: x
+        return self._interpolate(text, lambda x: esc(str(self._do_eval(x))))
 
     def visitInclude(self, node):
         path = os.path.join(self.options.get("basedir", os.getcwd()), node.path)
@@ -125,12 +126,7 @@ class Compiler(pypugjs.compiler.Compiler):
             val = self.var_processor(val)
             val = self._do_eval(val)
             if code.escape:
-                val = (
-                    str(val)
-                    .replace('&', '&amp;')
-                    .replace('<', '&lt;')
-                    .replace('>', '&gt;')
-                )
+                val = self.html_escape(str(val))
             self.buf.append(val)
         if code.block:
             self.visit(code.block)

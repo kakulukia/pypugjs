@@ -16,7 +16,8 @@ class Compiler(_Compiler):
         )
 
     def interpolate(self, text, escape=True):
-        return self._interpolate(text, lambda x: '${%s}' % x)
+        filt = '|h' if escape else ''
+        return self._interpolate(text, lambda x: '${%s%s}' % (x, filt))
 
     def visitCodeBlock(self, block):
         if self.mixing > 0:

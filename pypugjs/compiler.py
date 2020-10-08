@@ -252,6 +252,13 @@ class Compiler(object):
             filter.attrs['filename'] = self.options.get('filename', None)
             self.buffer(fn(text, filter.attrs))
 
+    def html_escape(self, s):
+        return (s
+                .replace('&', '&amp;')
+                .replace('<', '&lt;')
+                .replace('>', '&gt;')
+                )
+
     def _interpolate(self, attr, repl):
         return self.RE_INTERPOLATE.sub(lambda matchobj: repl(matchobj.group(3)), attr)
 
@@ -268,9 +275,17 @@ class Compiler(object):
                 else:
                     filter_string = ''
 
+            matchvar = matchobj.group(3)
+            if (matchvar[0] in ['"', "'"]
+                    and matchvar[-1] == matchvar[0]
+                    and filter_string == '|escape'):
+                # Django doesn't correctly escape strings. To stay consistent
+                # with Pug, escape these now.
+                return self.html_escape(matchvar[1:-1])
+
             return (
                 self.variable_start_string
-                + matchobj.group(3)
+                + matchvar
                 + filter_string
                 + self.variable_end_string
             )
