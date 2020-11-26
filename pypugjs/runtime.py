@@ -129,7 +129,8 @@ def iteration(obj, num_keys):
         return []
 
     if is_iterable(head):
-        if num_keys == get_cardinality(head) + 1:
+        cardinality = get_cardinality(head)
+        if cardinality > 0 and num_keys == cardinality + 1:
             return (tuple(item) + (ix,) for ix, item in enumerate(iter_obj))
         else:
             return iter_obj

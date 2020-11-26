@@ -30,3 +30,7 @@ class TestIteration(object):
         test_list = [1, 2]
         iterator = iter(test_list)
         assert list(runtime.iteration(iterator, 1)) == test_list
+
+    def test_nested_empty_array_with_single_key(self):
+        test_list = [[]]
+        assert list(runtime.iteration(test_list, 1)) == test_list
