@@ -9,7 +9,7 @@ from chardet.universaldetector import UniversalDetector
 import io
 
 try:
-    from collections import Mapping as MappingType
+    from collections.abc import Mapping as MappingType
 except ImportError:
     import UserDict
 
