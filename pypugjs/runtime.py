@@ -5,8 +5,9 @@ from itertools import chain
 import six
 from six.moves import reduce
 
-from chardet.universaldetector import UniversalDetector
 import io
+
+import charset_normalizer
 
 try:
     from collections.abc import Mapping as MappingType
@@ -145,21 +146,15 @@ def iteration(obj, num_keys):
 def open(
     file, mode='r', buffering=-1, encoding=None, errors=None, newline=None, closefd=True
 ):
-    rawdata = io.open(file, mode='rb')
-
-    detector = UniversalDetector()
-    for line in rawdata.readlines():
-        detector.feed(line)
-        if detector.done:
-            break
-    detector.close()
-    rawdata.close()
+    if encoding is None:
+        charset_match = charset_normalizer.from_path(file).best()
+        encoding = charset_match and charset_match.encoding
 
     decoded = io.open(
         file,
         mode=mode,
         buffering=buffering,
-        encoding=detector.result["encoding"],
+        encoding=encoding,
         errors=errors,
         newline=newline,
         closefd=closefd,

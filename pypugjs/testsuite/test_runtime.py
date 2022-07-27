@@ -1,7 +1,10 @@
+import unittest
+import tempfile
+
 from pypugjs import runtime
 
 
-class TestIteration(object):
+class TestIteration(unittest.TestCase):
     def test_it_returns_mappings_unaltered(self):
         mapping = {}
         assert runtime.iteration(mapping, 1) is mapping
@@ -34,3 +37,25 @@ class TestIteration(object):
     def test_nested_empty_array_with_single_key(self):
         test_list = [[]]
         assert list(runtime.iteration(test_list, 1)) == test_list
+
+
+class TestOpen(unittest.TestCase):
+    def test_encoding_taken_directly(self):
+        """If an encoding is given, we don't try to make a guess."""
+        with tempfile.NamedTemporaryFile() as file:
+            file.write('✔️¿¿«Not valid Latin-1»??'.encode('utf-8'))
+            file.seek(0)
+
+            with runtime.open(file.name, encoding='latin1') as handle:
+                self.assertEqual(
+                    handle.read(),
+                    'â\x9c\x94ï¸\x8fÂ¿Â¿Â«Not valid Latin-1Â»??'
+                )
+
+    def test_guess_is_made_without_encoding(self):
+        with tempfile.NamedTemporaryFile() as file:
+            file.write('我没有埋怨，磋砣的只是一些时间。'.encode('utf-32'))
+            file.seek(0)
+
+            with runtime.open(file.name) as handle:
+                self.assertEqual(handle.encoding, 'utf_32')
