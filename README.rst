@@ -141,6 +141,11 @@ And use them in your templates like this:
       +foo(data)
 
 
+*Mixins might not work, depending on the used Framework.
+The following have been reported as broken:*
+
+* Django (v4.2)
+
 
 TESTING
 =======
