@@ -18,6 +18,10 @@ def attrs(attrs, terse=False):
 
 
 class Compiler(_Compiler):
+    def __init__(self, node, **options):
+        self.filename = options.pop('_filename')
+        super().__init__(node, **options)
+    
     def visitCodeBlock(self, block):
         if self.mixing > 0:
             if self.mixing > 1:
@@ -110,18 +114,34 @@ class Compiler(_Compiler):
         self.buf.append('{% endfor %}')
 
     def visitInclude(self, node):
-        path = os.path.join(
-            self.options.get("basedir", '.'), self.format_path(node.path)
-        )
-        if os.path.exists(path):
-            src = open(path, 'r').read()
+        path = self.format_path(node.path)
+        if path.startswith('/'):
+            if not self.options.get('basedir'):
+                raise Exception("Include path '{}' requires basedir option to resolve.".format(path))
+
+            else:
+                path = os.path.join(self.options["basedir"], path)
         else:
-            raise Exception("Include path doesn't exists ({})".format(path))
+            if not self.filename:
+                raise Exception("Include path '{}' requires filename to resolve.".format(path))
 
-        parser = pypugjs.parser.Parser(src)
-        block = parser.parse()
-        self.visit(block)
+            else:
+                path = os.path.join(os.path.dirname(self.filename), path)
 
+        if not os.path.exists(path):
+            raise Exception("Include path '{}' does not exist.".format(path))
+
+        with open(path, 'r') as fd:
+            src = fd.read()
+
+        if not path.endswith(self.extension):
+            self.buf.append(src)
+
+        else:
+            parser = pypugjs.parser.Parser(src)
+            block = parser.parse()
+            self.visit(block)
+            
     def attributes(self, attrs):
         return "%s%s(%s)%s" % (
             self.variable_start_string,
@@ -154,9 +174,14 @@ class PyPugJSExtension(Extension):
             loader = loader.app.jinja_loader
         except AttributeError:
             pass
+            
         if hasattr(loader, 'searchpath') and len(loader.searchpath):
             self.options["basedir"] = loader.searchpath[0]
 
-        if not name or (name and not os.path.splitext(name)[1] in self.file_extensions):
+        if filename:
+            self.options["_filename"] = filename
+
+        if (not name) or (os.path.splitext(name)[1] not in self.file_extensions):
             return source
-        return process(source, filename=name, compiler=Compiler, **self.options)
+        else:
+            return process(source, filename=name, compiler=Compiler, **self.options)
