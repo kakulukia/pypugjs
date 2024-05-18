@@ -146,12 +146,16 @@ class Tag(Node):
         if not isinstance(string, six.string_types) or not string:
             return string
         if string[0] in ('"', "'"):
-            if string[0] == string[-1]:
+            if string[0] == string[-1] and not ("'" in string and '"' in string):
+                # string is enclosed in quotes AND has no other quotes inside -> we make the string raw
                 string = string[1:-1]
             else:
+                # contains both types of quotes OR is asymmetrically quoted, we may not change the string
                 return string
         if only_remove:
+            # return raw string
             return string
+        # string is now raw, we need to quote it
         return '"%s"' % string
 
     def setAttribute(self, name, val, static=True):
