@@ -177,8 +177,8 @@ class Tag(Node):
             name = attr['name']
             val = attr['val']
             static = attr['static']  # and isinstance(val,six.string_types)
-            if static:
-                val = self.static(val)
+            #if static:
+            #    val = self.static(val)
             if val in ("True", "False", "None"):
                 val = val == "True"
                 static = True
