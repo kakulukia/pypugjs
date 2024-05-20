@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pypugjs"
-version = "5.9.13"
+version = "5.9.12"
 description = ""
 authors = ["Andy Grabow <andy@freilandkiwis.de>"]
 license = "MIT"
