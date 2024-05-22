@@ -176,7 +176,7 @@ expected_results = {
         {"buffer": None, "type": "string", "line": 1, "inline_level": 1, "val": ""},
         {"buffer": None, "line": 1, "type": "string", "inline_level": 0, "val": ""},
     ],
-    "#[strong start] line with #[i]\#[j] inline": [
+    r"#[strong start] line with #[i]\#[j] inline": [
         {"buffer": None, "line": 1, "type": "string", "inline_level": 0, "val": ""},
         {"buffer": None, "type": "tag", "line": 1, "inline_level": 1, "val": "strong"},
         {
