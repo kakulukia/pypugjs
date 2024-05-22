@@ -60,7 +60,7 @@ def attrs(attrs=None, terse=False, undefined=None):
         for k, v in attrs:
             if undefined is not None and isinstance(v, undefined):
                 continue
-            if v is not None and (v or isinstance(v, bool)):
+            if v is not None and (v or not isinstance(v, bool)):
                 if k == 'class':
                     v = u' '.join(extract_classes(v))
                 t = v and isinstance(v, bool)
