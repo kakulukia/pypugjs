@@ -60,10 +60,10 @@ def attrs(attrs=None, terse=False, undefined=None):
         for k, v in attrs:
             if undefined is not None and isinstance(v, undefined):
                 continue
-            if v is not None and (v or type(v) is not bool):
+            if v is not None and (v or isinstance(v, bool)):
                 if k == 'class':
                     v = u' '.join(extract_classes(v))
-                t = v and type(v) is bool
+                t = v and isinstance(v, bool)
                 if t and not terse:
                     v = k
                 buf.append(u'%s' % k if terse and t else u'%s="%s"' % (k, escape(v)))
