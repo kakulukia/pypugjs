@@ -1,14 +1,14 @@
-PyPugJS |PyPiPackage| |BuildStatus|_ |Coverage|
+PyPugJS |PyPiPackage| |BuildStatus| |Coverage|
 ===================================================
 
 .. |PyPiPackage| image:: https://badge.fury.io/py/pypugjs.svg
-.. _PyPiPackage: https://badge.fury.io/py/pypugjs
+   :target: https://badge.fury.io/py/pypugjs
 
 .. |BuildStatus| image:: https://github.com/kakulukia/pypugjs/actions/workflows/python-package.yml/badge.svg
-.. _BuildStatus: https://github.com/kakulukia/pypugjs/actions/workflows/python-package.yml
+   :target: https://github.com/kakulukia/pypugjs/actions/workflows/python-package.yml
 
 .. |Coverage| image:: https://codecov.io/gh/kakulukia/pypugjs/branch/master/graph/badge.svg
-.. _Coverage: https://codecov.io/gh/kakulukia/pypugjs
+   :target: https://codecov.io/gh/kakulukia/pypugjs
 
 **PyPugJS is a fork of** `PyJade <http://github.com/syrusakbary/pyjade>`_
 **with the name Jade changed to** `PugJS <https://github.com/pugjs/pug>`_.
