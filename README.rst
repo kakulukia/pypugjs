@@ -1,4 +1,4 @@
-PyPugJS |PyPiPackage|_ |BuildStatus|_ |Coverage|_
+PyPugJS |PyPiPackage| |BuildStatus| |Coverage|
 ===================================================
 
 .. |PyPiPackage| image:: https://badge.fury.io/py/pypugjs.svg
