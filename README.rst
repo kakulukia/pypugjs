@@ -4,8 +4,8 @@ PyPugJS |PyPiPackage| |BuildStatus| |Coverage|
 .. |PyPiPackage| image:: https://badge.fury.io/py/pypugjs.svg
    :target: https://badge.fury.io/py/pypugjs
 
-.. |BuildStatus| image:: https://github.com/kakulukia/pypugjs/actions/workflows/test.yml/badge.svg
-   :target: https://github.com/kakulukia/pypugjs/actions/workflows/test.yml
+.. |BuildStatus| image:: https://github.com/kakulukia/pypugjs/actions/workflows/tests.yml/badge.svg
+   :target: https://github.com/kakulukia/pypugjs/actions/workflows/tests.yml
 
 .. |Coverage| image:: https://codecov.io/gh/kakulukia/pypugjs/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/kakulukia/pypugjs
