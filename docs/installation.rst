@@ -33,6 +33,7 @@ In `settings.py`, add a `loader` to `TEMPLATES` like so:
     ]
 
 In case you want to use Djangos translation feature add the following call to settings.py
+(Note: only .pug files are supported)
 
 .. code:: python
 
