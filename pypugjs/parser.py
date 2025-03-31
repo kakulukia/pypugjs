@@ -1,10 +1,7 @@
-from __future__ import absolute_import
-
 import six
 
 from . import nodes
 from .lexer import Lexer
-
 
 class Parser(object):
     def __init__(self, source, filename=None, **options):

@@ -219,7 +219,10 @@ class Compiler(object):
             if tag.code:
                 self.visitCode(tag.code)
             if tag.text:
-                self.buffer(self.interpolate(tag.text.nodes[0].lstrip()))
+                text_val = tag.text.nodes[0]
+                if text_val.startswith(' '):
+                    text_val = text_val[1:]
+                self.buffer(self.interpolate(text_val))
             self.escape = 'pre' == tag.name
             # empirically check if we only contain text
             textOnly = tag.textOnly or not bool(len(tag.block.nodes))
