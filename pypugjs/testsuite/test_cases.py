@@ -177,10 +177,9 @@ processors["Html"] = html_process
 
 
 def run_case(case, process):
-    import codecs
 
     processor = processors[process]
-    with codecs.open(
+    with open(
         str(Path(__file__).parent / "cases/%s.pug") % case, encoding="utf-8"
     ) as pugjs_file:
         pugjs_src = pugjs_file.read()
@@ -188,7 +187,7 @@ def run_case(case, process):
             pugjs_src = pugjs_src.decode("utf-8")
         pugjs_file.close()
 
-    with codecs.open(
+    with open(
         str(Path(__file__).parent / "cases/%s.html") % case, encoding="utf-8"
     ) as html_file:
         html_src = html_file.read().strip("\n")
