@@ -6,9 +6,11 @@ from pypugjs import Compiler as _Compiler
 
 
 def process_param(key, value, terse=False):
-    if terse:
-        if (key == value) or (value is True):
-            return key
+    # Always render boolean True as presence-only attribute
+    if value is True:
+        return key
+    if terse and (key == value):
+        return key
     if isinstance(value, six.binary_type):
         value = value.decode('utf8')
     return '''%s="%s"''' % (key, value)

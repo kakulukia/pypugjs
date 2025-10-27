@@ -3,6 +3,7 @@ import six
 from . import nodes
 from .lexer import Lexer
 
+
 class Parser(object):
     def __init__(self, source, filename=None, **options):
         self.input = source

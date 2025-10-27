@@ -441,10 +441,9 @@ class Compiler(object):
                     else:
                         self.buf.append(' %s="%s"' % (n, self.visitVar(v)))
                 elif v is True:
-                    if self.terse:
-                        self.buf.append(' %s' % (n,))
-                    else:
-                        self.buf.append(' %s="%s"' % (n, n))
+                    # For boolean attributes, prefer presence form regardless of doctype
+                    # (e.g., checked, selected, v-else)
+                    self.buf.append(' %s' % (n,))
             else:
                 temp_attrs.append(attr)
 

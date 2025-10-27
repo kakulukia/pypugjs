@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import re
+import difflib
 from pathlib import Path
 
 import pypugjs
@@ -200,8 +201,34 @@ def run_case(case, process):
         html_file.close()
     try:
         processed_pugjs = processor(pugjs_src, "%s.pug" % case).strip("\n")
-        print("PROCESSED (" + str(len(processed_pugjs)) + " chars)\n" + processed_pugjs)
-        print("\nEXPECTED (" + str(len(html_src)) + " chars)\n" + html_src)
+
+        if processed_pugjs != html_src:
+            RED_BG = "\x1b[41m"    # expected-only segments (missing in output)
+            GREEN_BG = "\x1b[42m"  # output-only segments (extra vs expected)
+            RESET = "\x1b[0m"
+
+            def merged_colored_text(a, b):
+                sm = difflib.SequenceMatcher(None, a, b)
+                parts = []
+                for tag, i1, i2, j1, j2 in sm.get_opcodes():
+                    if tag == 'equal':
+                        parts.append(a[i1:i2])
+                    elif tag == 'delete':
+                        parts.append(RED_BG + a[i1:i2] + RESET)
+                    elif tag == 'insert':
+                        parts.append(GREEN_BG + b[j1:j2] + RESET)
+                    elif tag == 'replace':
+                        parts.append(RED_BG + a[i1:i2] + RESET)
+                        parts.append(GREEN_BG + b[j1:j2] + RESET)
+                return ''.join(parts)
+
+            print(
+                "\nDiff (" + str(len(html_src)) + " chars expected - "
+                + str(len(processed_pugjs)) + " chars rendered)"
+            )
+            print("================== EXPECTED / RENDERED ==================\n")
+            print(merged_colored_text(html_src, processed_pugjs))
+
         assert processed_pugjs == html_src
 
     except CurrentlyNotSupported:

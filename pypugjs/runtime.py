@@ -60,13 +60,17 @@ def attrs(attrs=None, terse=False, undefined=None):
         for k, v in attrs:
             if undefined is not None and isinstance(v, undefined):
                 continue
-            if v is not None and (v or not isinstance(v, bool)):
+            # Skip False/None; include True as presence-only attribute
+            if v is True:
+                buf.append(u'%s' % k)
+            elif v not in (None, False):
                 if k == 'class':
                     v = u' '.join(extract_classes(v))
-                t = v and isinstance(v, bool)
-                if t and not terse:
-                    v = k
-                buf.append(u'%s' % k if terse and t else u'%s="%s"' % (k, escape(v)))
+                # If terse and value equals key, collapse to presence form as well
+                if terse and (v == k):
+                    buf.append(u'%s' % k)
+                else:
+                    buf.append(u'%s="%s"' % (k, escape(v)))
     return u' '.join(buf)
 
 

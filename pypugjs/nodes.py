@@ -183,8 +183,15 @@ class Tag(Node):
             static = attr['static']  # and isinstance(val,six.string_types)
             if static:
                 val = self.static(val)
-            if val in ("True", "False", "None"):
-                val = val == "True"
+            # Normalize common boolean/null literals written in pug style
+            # Unquoted lowercase true/false/null should be treated as booleans/None
+            if val in ("True", "False", "None", "true", "false", "null"):
+                if val in ("True", "true"):
+                    val = True
+                elif val in ("False", "false"):
+                    val = False
+                else:
+                    val = None
                 static = True
             d = dict(name=name, val=val, static=static)
             if name == 'class':
