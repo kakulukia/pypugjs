@@ -25,7 +25,6 @@ try:
     )
 
     def jinja_process(src, filename):
-        global jinja_env
         template = jinja_env.get_template(filename)
         return template.render()
 
@@ -46,7 +45,6 @@ try:
     )
 
     def jinja_process_variable_start_string(src, filename):
-        global jinja_env
         template = jinja_env.get_template(filename)
         return template.render()
 
@@ -63,7 +61,6 @@ try:
     loader = tornado.template.Loader(str(Path(__file__).parent / "cases"))
 
     def tornado_process(src, filename):
-        global loader, tornado
         template = tornado.template.Template(src, name="_.pug", loader=loader)
         generated = template.generate(missing=None)
         if isinstance(generated, six.binary_type):
@@ -182,7 +179,6 @@ processors["Html"] = html_process
 def run_case(case, process):
     import codecs
 
-    global processors
     processor = processors[process]
     with codecs.open(
         str(Path(__file__).parent / "cases/%s.pug") % case, encoding="utf-8"
