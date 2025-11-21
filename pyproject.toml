@@ -12,7 +12,7 @@ six = "^1.17.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.11.0"
-Django = "^4.2.25"
+Django = "^4.2.26"
 flake8 = "^7.3.0"
 Flask = "^2.3.3"
 icecream = "^2.1.8"
