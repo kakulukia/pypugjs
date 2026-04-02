@@ -72,7 +72,7 @@ class Lexer(object):
     RE_BLOCK = re.compile(r'''^block(( +(?:(prepend|append) +)?([^\n]*))|\n)''')
     RE_YIELD = re.compile(r'^yield *')
     RE_INCLUDE = re.compile(r'^include +([^\n]+)')
-    RE_ASSIGNMENT = re.compile(r'^(-\s+var\s+)?(\w+) += *([^;\n]+)( *;? *)')
+    RE_ASSIGNMENT = re.compile(r'^(-[ \t]+var[ \t]+)?(\w+) += *([^;\n]+)( *;? *)')
     RE_MIXIN = re.compile(r'^mixin +([-\w]+)(?: *\((.*)\))?')
     RE_CALL = re.compile(r'^\+\s*([-.\w]+)(?: *\((.*)\))?')
     RE_CONDITIONAL = re.compile(r'^(?:- *)?(if|unless|else if|elif|else)\b([^\n]*)')
@@ -80,6 +80,8 @@ class Lexer(object):
     # RE_WHILE = re.compile(r'^while +([^\n]+)')
     RE_EACH = re.compile(r'^(?:- *)?(?:each|for) +([\w, ]+) +in +([^\n]+)')
     RE_CODE = re.compile(r'^(!?=|-)([^\n]+)')
+    RE_MULTILINE_CODE = re.compile(r'^-(?:[ \t]*)\n')
+    RE_MULTILINE_ASSIGNMENT = re.compile(r'^(?:var[ \t]+)?([A-Za-z_]\w*)[ \t]*=[ \t]*([^\n]*)')
     RE_ATTR_INTERPOLATE = re.compile(r'#\{([^}]+)\}')
     RE_ATTR_PARSE = re.compile(r'''^['"]|['"]$''')
     RE_INDENT_TABS = re.compile(r'^\n(\t*) *')
@@ -456,6 +458,76 @@ class Lexer(object):
             tok.code = captures[2]
             return tok
 
+    def _collect_indented_raw_lines(self, text):
+        parent_indent = self.indentStack[0] if self.indentStack else 0
+        first_indent = None
+        lines = []
+        pos = 0
+        consumed = 0
+
+        while pos < len(text):
+            newline = text.find('\n', pos)
+            if newline == -1:
+                newline = len(text)
+                next_pos = newline
+            else:
+                next_pos = newline + 1
+
+            raw_line = text[pos:newline]
+            stripped = raw_line.lstrip(' \t')
+            indent = len(raw_line) - len(stripped)
+
+            if stripped:
+                if indent <= parent_indent:
+                    break
+                if first_indent is None:
+                    first_indent = indent
+                lines.append(raw_line[first_indent:])
+            else:
+                lines.append('')
+
+            consumed = newline
+            pos = next_pos
+
+        if first_indent is None:
+            return None, 0
+        return lines, consumed
+
+    def multilineCode(self):
+        captures = regexec(self.RE_MULTILINE_CODE, self.input)
+        if not captures:
+            return
+
+        line = self.lineno
+        block_text = self.input[len(captures[0]):]
+        lines, consumed = self._collect_indented_raw_lines(block_text)
+        if not lines:
+            return
+
+        raw = '\n'.join(lines).rstrip()
+        self.consume(len(captures[0]) + consumed)
+        self.lineno += captures[0].count('\n') + block_text[:consumed].count('\n')
+
+        assignment = regexec(self.RE_MULTILINE_ASSIGNMENT, raw)
+        if assignment:
+            tok = self.tok('assignment', None)
+            tok.line = line
+            tok.name = assignment[1]
+            val = assignment[2]
+            tail = raw[len(assignment[0]):]
+            if tail:
+                val += tail
+            tok.val = val.rstrip()
+            if tok.val.endswith(';'):
+                tok.val = tok.val[:-1].rstrip()
+            return tok
+
+        tok = self.tok('code', raw)
+        tok.line = line
+        tok.escape = False
+        tok.buffer = False
+        return tok
+
     def code(self):
         captures = regexec(self.RE_CODE, self.input)
         if captures:
@@ -701,6 +773,7 @@ class Lexer(object):
             or self.call()
             or self.conditional()
             or self.each()
+            or self.multilineCode()
             or self.assignment()
             or self.tag()
             or self.textBlockStart()
