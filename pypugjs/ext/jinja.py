@@ -107,6 +107,40 @@ class Compiler(_Compiler):
                 if codeTag in self.auto_close_code:
                     self.buf.append('{%% end%s %%}' % codeTag)
 
+    def interpolate(self, text, escape=None):
+        def repl(matchobj):
+            if escape is None:
+                if matchobj.group(2) == '!':
+                    filter_string = ''
+                else:
+                    filter_string = '|escape'
+            else:
+                if escape is True:
+                    filter_string = '|escape'
+                else:
+                    filter_string = ''
+
+            matchvar = matchobj.group(3)
+            if (matchvar[0] in ['"', "'"]
+                    and matchvar[-1] == matchvar[0]
+                    and filter_string == '|escape'):
+                return self.html_escape(matchvar[1:-1])
+
+            if filter_string:
+                # Parentheses ensure |escape applies to the whole expression,
+                # not just the last operand (e.g. `a - 10|escape` escapes
+                # only 10 and causes a TypeError on the subtraction)
+                matchvar = '(%s)' % matchvar
+
+            return (
+                self.variable_start_string
+                + matchvar
+                + filter_string
+                + self.variable_end_string
+            )
+
+        return self.RE_INTERPOLATE.sub(repl, text)
+
     def visitEach(self, each):
         self.buf.append(
             "{%% for %s in %s(%s,%d) %%}"
