@@ -44,7 +44,7 @@ class Compiler(_Compiler):
         self.buffer('{% endblock %}')
 
     def visitAssignment(self, assignment):
-        self.buffer('{%% __pypugjs_set %s = %s %%}' % (assignment.name, assignment.val))
+        self.buffer('{%% __pypugjs_set %s = %s %%}' % (assignment.name, assignment.val.replace('\n', ' ')))
 
     def visitMixin(self, mixin):
         self.mixing += 1
