@@ -291,3 +291,43 @@ def build_parameters():
 @pytest.mark.parametrize("case, processor", build_parameters())
 def test_engines(case, processor):
     run_case(case, processor)
+
+
+def test_django_multiple_mixin_includes(monkeypatch):
+    from types import SimpleNamespace
+
+    from pypugjs.ext.django.compiler import Compiler
+    from pypugjs.utils import process
+
+    sources = {
+        "a.pug": "mixin a()\n  p A",
+        "b.pug": "mixin b()\n  p B",
+    }
+    loader = Loader(
+        Engine.get_default(), config["TEMPLATES"][0]["OPTIONS"]["loaders"]
+    )
+
+    def get_template_sources(name):
+        source = sources[name]
+        origin_loader = SimpleNamespace(get_contents=lambda origin: source)
+        return [SimpleNamespace(loader=origin_loader)]
+
+    monkeypatch.setattr(loader, "get_template_sources", get_template_sources)
+    source = loader.include_pug_sources(
+        "include a.pug\ninclude b.pug\n+a()\n+b()"
+    )
+    template = Engine.get_default().from_string(process(source, compiler=Compiler))
+    rendered = template.render(django.template.Context())
+
+    assert re.sub(r"\s+", "", rendered) == "<p>A</p><p>B</p>"
+
+
+def test_jinja_relative_includes():
+    environment = Environment(
+        extensions=[PyPugJSExtension],
+        loader=FileSystemLoader(str(Path(__file__).parent / "cases")),
+    )
+
+    rendered = environment.get_template("relative/parent.pug").render()
+
+    assert re.sub(r"\s+", "", rendered) == "<p>child</p><p>grandchild</p>"

@@ -22,7 +22,7 @@ class Loader(cached.Loader):
             origin = [o for o in self.get_template_sources(mixin_name)][0]
             template = origin.loader.get_contents(origin)
             template = self.include_pug_sources(template)
-            contents = re.sub(r'^include (.*)$', template, contents, flags=re.MULTILINE)
+            contents = contents[:match.start()] + template + contents[match.end():]
             match = re.search(r'^include (.*)$', contents, re.MULTILINE)
         return contents
 

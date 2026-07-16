@@ -150,17 +150,31 @@ class Compiler(_Compiler):
         self.buf.append('{% endfor %}')
 
     def visitInclude(self, node):
-        path = os.path.join(
-            self.options.get("basedir", '.'), self.format_path(node.path)
-        )
+        include_path = self.format_path(node.path)
+        basedir = self.options.get("basedir", '.')
+        if os.path.isabs(include_path):
+            path = os.path.join(basedir, include_path.lstrip('/\\'))
+        else:
+            source_path = self.options.get("source_path")
+            path = os.path.join(
+                os.path.dirname(source_path) if source_path else basedir,
+                include_path,
+            )
+            if source_path and not os.path.exists(path):
+                path = os.path.join(basedir, include_path)
         if os.path.exists(path):
             src = open(path, 'r').read()
         else:
             raise Exception("Include path doesn't exists ({})".format(path))
 
-        parser = pypugjs.parser.Parser(src)
+        parser = pypugjs.parser.Parser(src, filename=path)
         block = parser.parse()
-        self.visit(block)
+        source_path = self.options.get("source_path")
+        self.options["source_path"] = path
+        try:
+            self.visit(block)
+        finally:
+            self.options["source_path"] = source_path
 
     def attributes(self, attrs):
         return "%s%s(%s)%s" % (
@@ -199,4 +213,5 @@ class PyPugJSExtension(Extension):
 
         if not name or (name and os.path.splitext(name)[1] not in self.file_extensions):
             return source
-        return process(source, filename=name, compiler=Compiler, **self.options)
+        options = dict(self.options, source_path=filename)
+        return process(source, filename=name, compiler=Compiler, **options)

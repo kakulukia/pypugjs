@@ -543,7 +543,7 @@ class Lexer(object):
     def attrs(self):
         if '(' == self.input[0]:
             index = self.indexOfDelimiters('(', ')')
-            string = self.input[1:index]
+            string = self.input[1:index].replace('\\\n', '')
             tok = self.tok('attrs')
             colons = self.colons
             states = ['key']
