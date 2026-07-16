@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "pypugjs",
+  "project_id": "647aacac-62ff-42be-bece-119bc9f505f3"
+}
