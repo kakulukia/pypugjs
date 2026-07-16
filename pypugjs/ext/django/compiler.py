@@ -80,7 +80,7 @@ class Compiler(_Compiler):
 
 def decorate_templatize(func):
     def templatize(src, origin=None, charset=None):
-        src = to_text(src, charset or settings.FILE_CHARSET)
+        src = to_text(src, charset or 'utf-8')
         if origin.endswith(".pug"):
             html = process(src, compiler=Compiler)
         else:
